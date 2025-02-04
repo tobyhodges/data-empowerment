@@ -20,7 +20,7 @@ carpentry: 'incubator'
 title: 'Lesson Title'
 
 # Date the lesson was created (YYYY-MM-DD, this is empty by default)
-created: '2025-01-27'
+created: '2025-02-03'
 
 # Comma-separated list of keywords for the lesson
 keywords: 'software, data, lesson, The Carpentries'
@@ -33,7 +33,7 @@ life_cycle: 'pre-alpha'
 license: 'CC-BY 4.0'
 
 # Link to the source repository for this lesson
-source: 'https://github.com/NoahV17/file1a494aabf6'
+source: 'https://github.com/NoahV17/data-empowerment'
 
 # Default branch of your lesson
 branch: 'main'
