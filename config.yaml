@@ -65,13 +65,22 @@ contact: 'team@carpentries.org'
 
 # Order of episodes in your lesson
 episodes: 
-- introduction.Rmd
+- 00-intro.Rmd
+- 01-intro-to-r.Rmd
+- 02-starting-with-data.Rmd
+- 03-dplyr.Rmd
+- 04-tidyr.Rmd
+- 05-ggplot2.Rmd
+- 06-rmarkdown.Rmd
+- 07-json.Rmd
 
 # Information for Learners
 learners: 
+- reference.md
 
 # Information for Instructors
 instructors: 
+- instructor-notes.md
 
 # Learner Profiles
 profiles: 
