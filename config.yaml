@@ -39,7 +39,7 @@ source: 'https://github.com/ml4sts/data-empowerment-lessons'
 branch: 'main'
 
 # Who to contact if there are any issues
-contact: 'team@carpentries.org'
+contact: 'brownsarahm@uri.edu'
 
 # Navigation ------------------------------------------------
 #
@@ -64,7 +64,7 @@ contact: 'team@carpentries.org'
 # - another-learner.md
 
 # Order of episodes in your lesson
-episodes: 
+episodes:
 - 00-intro.Rmd
 - 01-intro-to-r.Rmd
 - 02-starting-with-data.Rmd
@@ -75,15 +75,15 @@ episodes:
 - 07-json.Rmd
 
 # Information for Learners
-learners: 
+learners:
 - reference.md
 
 # Information for Instructors
-instructors: 
+instructors:
 - instructor-notes.md
 
 # Learner Profiles
-profiles: 
+profiles:
 
 # Customisation ---------------------------------------------
 #
