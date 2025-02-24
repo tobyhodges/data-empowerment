@@ -39,7 +39,7 @@ source: 'https://github.com/ml4sts/data-empowerment-lessons'
 branch: 'main'
 
 # Who to contact if there are any issues
-
+contact: 'team@carpentries.org'
 
 # Navigation ------------------------------------------------
 #
