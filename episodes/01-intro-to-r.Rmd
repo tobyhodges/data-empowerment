@@ -403,77 +403,166 @@ all R objects are built from. The other 4 **atomic vector** types are:
 
 You can check the type of your vector using the `typeof()` function and inputting your vector as the argument.
 
+### Coercion
+
+An important characteristic of vectors is that they can only contain elements of the same data type. If you attempt to combine different types in a vector, R will automatically convert them to a single, common type - a process called "coercion". This follows a hierarchy: logical → integer → numeric → character.
+
+```{r}
+# Coercion examples
+num_logical <- c(1, TRUE) # TRUE converted to 1
+typeof(num_logical)
+
+num_character <- c(1, "a") # 1 converted to "1"
+typeof(num_character)
+
+logical_character <- c(TRUE, "a") # TRUE converted to "TRUE"
+typeof(logical_character)
+
+tricky <- c(1, "2", TRUE) # Everything becomes character
+typeof(tricky)
+```
+
+R will always try to find a common data type that doesn't lose information. Typically, this means converting toward the more flexible type (with character being the most flexible).
+
+:::::::::::::::::::::::::::::::::::::::  challenge
+
+## Exercise: Coercion in vectors
+
+1. Predict the resulting data type for this vector: `c(1.1, 2L, TRUE, "a")`
+
+2. Create a vector that contains: 
+   - The number 5
+   - The logical value FALSE
+   - The string "data"
+   
+   What is the resulting data type? Why?
+
+3. If you have a numeric vector and need to convert it to character, what function would you use?
+
+:::::::::::::::  solution
+
+## Solution
+
+1. The vector `c(1.1, 2L, TRUE, "a")` will have type "character" because character is the most flexible data type.
+
+2. The vector would be:
+```{r}
+mixed <- c(5, FALSE, "data")
+typeof(mixed)
+```
+It has type "character" because R coerces all elements to the most flexible data type that includes all values.
+
+3. To explicitly convert a numeric vector to character:
+```{r}
+numbers <- c(1, 2, 3)
+char_numbers <- as.character(numbers)
+typeof(char_numbers)
+```
+
+:::::::::::::::::::::::::
+
+::::::::::::::::::::::::::::::::::::::::::::::::::
+
 Vectors are one of the many **data structures** that R uses. Other important
 ones are lists (`list`), matrices (`matrix`), data frames (`data.frame`),
 factors (`factor`) and arrays (`array`).
+
+### Working with Dates
+
+Dates are a common data type that require special attention. In R, dates can be represented in two ways:
+
+1. As character strings (e.g., "2023-11-15", "11/15/2023")
+2. As Date objects which are a special data type
+
+When dates are stored as strings, they're treated like any other text:
+
+```{r}
+dates_as_strings <- c("2023-01-15", "2023-02-20", "2023-03-25")
+typeof(dates_as_strings)
+```
+
+However, storing dates as proper Date objects offers several advantages:
+- You can perform arithmetic with dates (calculate time differences)
+- You can extract components like month, year, or day
+- You can easily format dates for display
+- You can sort dates chronologically
+
+To convert strings to Date objects, use the `as.Date()` function:
+
+```{r}
+# Convert strings to Date objects
+dates <- as.Date(dates_as_strings)
+typeof(dates)
+class(dates)
+```
+
+The default format is "YYYY-MM-DD" (ISO standard). If your dates are in a different format, you need to specify it:
+
+```{r}
+# American-style dates (month/day/year)
+us_dates <- c("1/15/2023", "2/20/2023", "3/25/2023")
+as.Date(us_dates, format = "%m/%d/%Y")
+```
+
+Once you have Date objects, you can:
+
+```{r}
+# Calculate intervals between dates
+date1 <- as.Date("2023-01-15")
+date2 <- as.Date("2023-03-25")
+date2 - date1  # Returns the difference in days
+
+# Extract parts of dates
+format(date1, "%m")  # Extract month
+format(date1, "%Y")  # Extract year
+format(date1, "%d")  # Extract day
+
+# Sort dates
+random_dates <- as.Date(c("2023-03-25", "2022-12-01", "2023-01-15"))
+sort(random_dates)
+```
+
+For more complex date-time operations, consider the `lubridate` package, which makes working with dates even easier:
+
+```{r, eval=FALSE}
+# library(lubridate)
+# ymd("2023-01-15")  # Year-Month-Day format
+# mdy("01/15/2023")  # Month-Day-Year format
+# dmy("15/01/2023")  # Day-Month-Year format
+```
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-We've seen that atomic vectors can be of type character, numeric (or double),
-integer, and logical. But what happens if we try to mix these types in a
-single vector?
+1. Create a vector of three dates as strings: "2022-10-15", "2023-01-20", "2022-07-31"
+2. Convert these strings to Date objects
+3. Sort the dates from earliest to latest
+4. Calculate how many days passed between the earliest and latest date
 
 :::::::::::::::  solution
 
 ## Solution
 
-R implicitly converts them to all be the same type.
+```{r}
+# 1. Create a vector of dates as strings
+date_strings <- c("2022-10-15", "2023-01-20", "2022-07-31")
 
-:::::::::::::::::::::::::
+# 2. Convert to Date objects
+my_dates <- as.Date(date_strings)
 
-What will happen in each of these examples? (hint: use `class()`
-to check the data type of your objects):
+# 3. Sort the dates
+sorted_dates <- sort(my_dates)
+sorted_dates
 
-```{r, results="hide"}
-num_char <- c(1, 2, 3, "a")
-num_logical <- c(1, 2, 3, TRUE)
-char_logical <- c("a", "b", "c", TRUE)
-tricky <- c(1, 2, 3, "4")
+# 4. Calculate days between earliest and latest
+latest_date <- max(my_dates)
+earliest_date <- min(my_dates)
+days_difference <- latest_date - earliest_date
+days_difference
 ```
 
-Why do you think it happens?
-
-:::::::::::::::  solution
-
-## Solution
-
-Vectors can be of only one data type. R tries to
-convert (coerce) the content of this vector to find a "common
-denominator" that doesn't lose any information.
-
 :::::::::::::::::::::::::
-
-How many values in `combined_logical` are `"TRUE"` (as a character) in the
-following example:
-
-```{r, results="hide"}
-num_logical <- c(1, 2, 3, TRUE)
-char_logical <- c("a", "b", "c", TRUE)
-combined_logical <- c(num_logical, char_logical)
-```
-
-:::::::::::::::  solution
-
-## Solution
-
-Only one. There is no memory of past data types, and the coercion
-happens the
-first time the vector is evaluated. Therefore, the `TRUE` in
-`num_logical`
-gets converted into a `1` before it gets converted into `"1"` in
-`combined_logical`.
-
-:::::::::::::::::::::::::
-
-You've probably noticed that objects of different types get
-converted into a single, shared type within a vector. In R, we
-call converting objects from one class into another class
-*coercion*. These conversions happen according to a hierarchy,
-whereby some types get preferentially coerced into other
-types. Can you draw a diagram that represents the hierarchy of how
-these data types are coerced?
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
