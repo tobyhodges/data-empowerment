@@ -29,7 +29,7 @@ jobs:
         run: Rscript -e 'sandpaper::build_lesson()'
 
       - name: Upload Artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
@@ -38,4 +38,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
