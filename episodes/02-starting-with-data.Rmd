@@ -134,7 +134,13 @@ The following is a visual representation of the dataset's columns:
 ## Importing data
 
 You are going to load the data in R's memory using the function `read_csv()`
-from the **`readr`** package, which is part of the **`tidyverse`**.
+from the **`readr`** package, which is part of the **`tidyverse`**; learn
+more about the **`tidyverse`** collection of packages
+[Tidyverse website](https://www.tidyverse.org/).
+**`readr`** gets installed as part as the **`tidyverse`** installation.
+When you load  the **`tidyverse`** (`library(tidyverse)`), the core packages
+(the packages used in most data analyses) get loaded, including **`readr`**.
+
 
 Before proceeding, however, this is a good opportunity to talk about conflicts.
 Certain packages we load can end up introducing function names that are already
