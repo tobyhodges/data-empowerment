@@ -186,7 +186,7 @@ library(here)
 
 #reads in data and assigns it to the 'data' variable using 'here'
 data <- read_csv(
-        here("episodes", "data", "anonymized_data.csv")
+        here("data", "anonymized_data.csv")
         )
 ```
 
