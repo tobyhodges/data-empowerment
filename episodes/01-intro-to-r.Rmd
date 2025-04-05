@@ -324,17 +324,22 @@ How do you use the `digits` parameter in the round function?
 
 A vector is the most common and basic data type in R, and is pretty much
 the workhorse of R. A vector is composed by a series of values, which can be
-either numbers or characters. We can assign a series of values to a vector using
-the `c()` function. For example, we can create a vector of check-in IDs from our dataset:
+either numbers, characters, or other data types. We can assign a series of values to a vector using
+the `c()` function. For example, we can create a vector of check-in ID strings, and 
+we can create another vector storing numbers of votes at different locations.
 
 ```{r, purl=FALSE}
 checkin_ids <- c("CHECKIN_000001", "CHECKIN_000002", "CHECKIN_000003")
 checkin_ids
+
+vote_counts <- c(1000, 4300, 2340, 7190)
+vote_counts
 ```
 
 The quotes around "CHECKIN_000001", etc. are essential here. Without the quotes, R
 will assume there are objects called `CHECKIN_000001`, `CHECKIN_000002`, and `CHECKIN_000003`. As these names
 don't exist in R's memory, there will be an error message.
+
 
 There are many functions that allow you to inspect the content of a
 vector. `length()` tells you how many elements are in a particular vector:
@@ -423,8 +428,6 @@ R will always try to find a common data type that doesn't lose information. Typi
    
    What is the resulting data type? Why?
 
-3. If you have a numeric vector and need to convert it to character, what function would you use?
-
 :::::::::::::::  solution
 
 ## Solution
@@ -437,13 +440,6 @@ mixed <- c(5, FALSE, "data")
 typeof(mixed)
 ```
 It has type "character" because R coerces all elements to the most flexible data type that includes all values.
-
-3. To explicitly convert a numeric vector to character:
-```{r}
-numbers <- c(1, 2, 3)
-char_numbers <- as.character(numbers)
-typeof(char_numbers)
-```
 
 :::::::::::::::::::::::::
 
@@ -511,11 +507,12 @@ A leap year scenario highlights the importance of using proper date types. Consi
 
 ```{r}
 # Bad example: Using strings for date arithmetic
-dates_as_strings <- c("2020-02-28", "2020-03-01")
+date_start <- "2020-02-28"
+date_end <- "2020-03-01"
 
 # Attempt to calculate the difference by converting strings to numeric days
-days_difference <- as.numeric(substr(dates_as_strings[2], 9, 10)) - as.numeric(substr(dates_as_strings[1], 9, 10))
-days_difference # Incorrect computation: Ignores months and leap years
+difference_wrong <- as.numeric(substr(date_end, 9, 10)) - as.numeric(substr(date_start, 9, 10))
+difference_wrong # Incorrect computation: Ignores months and leap years
 ```
 
 In this example, we extract the day portion of the dates as strings and subtract them. While this works for simple cases, it fails to account for:
@@ -526,9 +523,11 @@ Now, compare this with proper date types:
 
 ```{r}
 # Correct example: Using Date for leap year handling
-dates <- as.Date(c("2020-02-28", "2020-03-01"))
-days_difference <- dates[2] - dates[1]
-days_difference # Correctly computes 2 days, accounting for February 29 in the leap year
+date_start_correct <- as.Date(date_start)
+date_end_correct <- as.Date(date_end)
+
+difference_correct <- as.numeric(date_end_correct - date_start_correct)
+difference_correct # Correctly computes 2 days, accounting for February 29 in the leap year
 ```
 
 Using proper date types ensures that leap years and other calendar-specific rules are handled correctly, making computations accurate and reliable.
