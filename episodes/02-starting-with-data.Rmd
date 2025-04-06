@@ -337,7 +337,8 @@ data[1, 5]
 data[1]
 
 #retrieves the 1st column of the tibble as a vector
-data[[1]]
+#we're using head here, as without it, we would print 100,000 entries!
+head(data[[1]])
 
 #retrieves the first three elements in the 3rd column of the tibble
 data[1:3, 3]
