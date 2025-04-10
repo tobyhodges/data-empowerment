@@ -722,7 +722,7 @@ Occasionally, after editing a dataset within RStudio, you may want to output the
 updated dataset to a CSV file. This would allow you to open the updated information
 in Excel, Google Sheets, or a different RMarkdown file!
 
-To output a file to CSV, we will be using the `write_csv` function from the 
+To output a file to CSV, we will be using the `write_csv()` function from the 
 **`readr`** package. Below, we will be outputting our updated data with our new
 date and time columns as `"anonymized_data_2.csv"`:
 
@@ -732,7 +732,7 @@ write_csv(data, "data/anonymized_data_2.csv")
 ```
 
 When choosing the name for the new file, ensure there are no files with the same
-name. By default, write_csv will overwrite any files of the same name without a
+name. By default, `write_csv()` will overwrite any files of the same name without a
 warning!
 
 Additionally, you may have noticed we included the file path when specifying the 
@@ -746,7 +746,7 @@ can specify that we want the new CSV file to go in that folder by adding `"data/
 before the name of the new file!
 
 Note: similarly to reading in CSV files, **`readr`** has a second version of
-`write_csv` called `write_csv2` that uses commas as decimal separators and 
+`write_csv()` called `write_csv2()` that uses commas as decimal separators and 
 semicolons as field delimiters.
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
