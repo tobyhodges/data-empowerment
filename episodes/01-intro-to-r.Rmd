@@ -30,6 +30,7 @@ source("data/download_data.R")
 - Inspect the content of vectors and manipulate their content.
 - Subset values from vectors.
 - Analyze vectors with missing data.
+- Work with dates and times in R using proper data types.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -42,6 +43,7 @@ source("data/download_data.R")
 - How can subsets be extracted from vectors?
 - How does R treat missing values?
 - How can we deal with missing values in R?
+- How can we work with dates and times in R?
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -199,14 +201,14 @@ to select the whole line), then press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +
 
 ## Exercise
 
-Create two variables `r_length` and `r_width` and assign them values. It should be noted that,
-because `length` is a built-in R function, R Studio might add "()" after you type `length` and
-if you leave the parentheses you will get unexpected results.
-This is why you might see other programmers abbreviate common words.
-Create a third variable `r_area` and give it a value based on the current values of `r_length`
-and `r_width`.
-Show that changing the values of either `r_length` and `r_width` does not affect the value of
-`r_area`.
+1. Create two variables `r_length` and `r_width` and assign them values.
+   * Note that `length` is a built-in R function, so R Studio might add "()" after you type it
+   * If you leave the parentheses, you'll get unexpected results
+   * This is why programmers often abbreviate common words
+
+2. Create a third variable `r_area` and give it a value based on the current values of `r_length` and `r_width`.
+
+3. Show that changing the values of either `r_length` and `r_width` does not affect the value of `r_area`.
 
 :::::::::::::::  solution
 
@@ -314,7 +316,28 @@ Type in `?round` at the console and then look at the output in the Help pane.
 What other functions exist that are similar to `round`?
 How do you use the `digits` parameter in the round function?
 
+:::::::::::::::  solution
+
+## Solution
+
+Looking at the help for `?round` shows several related functions:
+- `ceiling`: rounds up to the nearest integer
+- `floor`: rounds down to the nearest integer 
+- `trunc`: truncates numbers by removing decimal places
+- `signif`: rounds to a specified number of significant digits
+
+The `digits` parameter in the `round` function specifies the number of decimal places to round to. For example:
+
+```{r}
+round(3.14159, digits = 2)  # Rounds to 2 decimal places: 3.14
+round(3.14159, digits = 0)  # Rounds to 0 decimal places: 3
+round(1234.56, digits = -1) # Negative digits round left of the decimal: 1230
+```
+
+:::::::::::::::::::::::::
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::
+
 
 ## Vectors and data types
 
@@ -511,6 +534,8 @@ date_start <- "2020-02-28"
 date_end <- "2020-03-01"
 
 # Attempt to calculate the difference by converting strings to numeric days
+# Here we use substr to extract the day portion in string format.
+# It draws the charachters at position 9 to 10 and converts them to numeric.
 difference_wrong <- as.numeric(substr(date_end, 9, 10)) - as.numeric(substr(date_start, 9, 10))
 difference_wrong # Incorrect computation: Ignores months and leap years
 ```
@@ -720,7 +745,7 @@ length(rooms_above_2)
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
 Now that we have learned how to write scripts, and the basics of R's data
-structures, we are ready to start working with the SAFI dataset we have been
+structures, we are ready to start working with the Anonymized Dataset we have been
 using in the other lessons, and learn about data frames.
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
@@ -728,6 +753,7 @@ using in the other lessons, and learn about data frames.
 - Access individual values by location using `[]`.
 - Access arbitrary sets of data using `[c(...)]`.
 - Use logical operations and logical vectors to access subsets of data.
+- Use proper date types (Date and POSIXct) instead of strings for date arithmetic.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
