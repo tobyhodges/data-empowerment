@@ -535,7 +535,7 @@ date_end <- "2020-03-01"
 
 # Attempt to calculate the difference by converting strings to numeric days
 # Here we use substr to extract the day portion in string format.
-# It draws the charachters at position 9 to 10 and converts them to numeric.
+# It draws the characters at position 9 to 10 and converts them to numeric.
 difference_wrong <- as.numeric(substr(date_end, 9, 10)) - as.numeric(substr(date_start, 9, 10))
 difference_wrong # Incorrect computation: Ignores months and leap years
 ```
