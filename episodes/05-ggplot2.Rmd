@@ -105,20 +105,20 @@ Example of a lattice plot showing check-ins by device for different locations:
 library(lattice)
 ```
 ```{r, purl=FALSE}
-# Convert device to factor to avoid coercion warnings
+# Convert device and location to factors
 checkins_lattice <- sample_n(checkins, 500) %>%
-  mutate(device = as.factor(device), 
+  mutate(device = as.factor(device),
          location = as.factor(location))
 
-# Create a proper lattice plot with categorical variables
-xyplot(checkin_hour ~ as.integer(device) | location, data = checkins_lattice,
-       main = "Lattice Plot: Check-in Hour by Device and Location",
+# Create a lattice boxplot (bwplot)
+bwplot(checkin_hour ~ device | location, data = checkins_lattice,
+       main = "Lattice Plot: Check-in Hour Distribution by Device and Location",
        xlab = "Device",
        ylab = "Hour of Check-in",
+       layout = c(length(unique(checkins_lattice$location)), 1), # Adjust layout if many locations
        strip = strip.custom(bg="lightgrey"),
        panel = function(x, y, ...) {
-         panel.xyplot(x, y, ...)
-         panel.loess(x, y, col="red", lwd=2)
+         panel.bwplot(x, y, ...)
        })
 ```
 
@@ -682,8 +682,7 @@ ggplot() +
 If you have precinct boundaries in a shapefile format, you can use the `sf` package to load and visualize them:
 
 ```{r sf-example, eval=FALSE}
-# Load shapefile (in practice, replace with your actual file path)
-# precincts <- st_read("path/to/your/precincts.shp")
+precincts <- st_read("data/shapefiles/RI_precincts.shp")
 
 # Create synthetic precinct data for demonstration
 precincts <- tibble(
@@ -977,7 +976,7 @@ cumulative_checkins <- sample_n(checkins, 500) %>%
   mutate(cumulative = cumsum(n))
 
 # Create the cumulative plot
-cumulative_sample_n(checkins, 500) %>%
+cumulative_checkins %>%
   ggplot(aes(x = checkin_hour, y = cumulative)) +
   geom_line(size = 1.2, color = "darkblue") +
   geom_point(size = 3, color = "darkblue") +
