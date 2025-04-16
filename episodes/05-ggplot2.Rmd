@@ -67,7 +67,7 @@ glimpse(checkins)
 To work effectively with the timestamps, we need to convert the `checkin_time` column to a proper datetime format:
 
 ```{r process-data}
-checkins <- checkins %>%
+checkins <- sample_n(checkins, 500) %>%
   mutate(
     checkin_time = ymd_hms(checkin_time),
     checkin_date = as.Date(checkin_time),
@@ -86,7 +86,7 @@ Base R plots are the simplest form of visualization and are great for quick, exp
 Example of a simple time series plot in base R showing check-ins by hour:
 
 ```{r, purl=FALSE}
-hourly_counts <- checkins %>%
+hourly_counts <- sample_n(checkins, 500) %>%
   count(checkin_hour)
 
 plot(hourly_counts$checkin_hour, hourly_counts$n,
@@ -105,10 +105,21 @@ Example of a lattice plot showing check-ins by device for different locations:
 library(lattice)
 ```
 ```{r, purl=FALSE}
-xyplot(checkin_hour ~ device | location, data = checkins,
+# Convert device to factor to avoid coercion warnings
+checkins_lattice <- sample_n(checkins, 500) %>%
+  mutate(device = as.factor(device), 
+         location = as.factor(location))
+
+# Create a proper lattice plot with categorical variables
+xyplot(checkin_hour ~ as.integer(device) | location, data = checkins_lattice,
        main = "Lattice Plot: Check-in Hour by Device and Location",
        xlab = "Device",
-       ylab = "Hour of Check-in")
+       ylab = "Hour of Check-in",
+       strip = strip.custom(bg="lightgrey"),
+       panel = function(x, y, ...) {
+         panel.xyplot(x, y, ...)
+         panel.loess(x, y, col="red", lwd=2)
+       })
 ```
 
 ## Plotting with **`ggplot2`**
@@ -154,14 +165,14 @@ Remember that the pipe operator `%>%` places the result of the previous line(s) 
 - use the `ggplot()` function and bind the plot to a specific data frame.
 
 ```{r ggplot-steps-1, eval=FALSE, purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot()
 ```
 
 - define a mapping (using the aesthetic (`aes`) function), by selecting the variables to be plotted and specifying how to present them in the graph, e.g. as x/y positions or characteristics such as size, shape, color, etc.
 
 ```{r ggplot-steps-2, eval=FALSE, purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = checkin_hour, y = precinct))
 ```
 
@@ -177,7 +188,7 @@ checkins %>%
 To add a geom to the plot use the `+` operator. Let's start by creating a bar chart showing the distribution of check-ins across precincts:
 
 ```{r first-ggplot, purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = precinct)) +
   geom_bar() +
   labs(title = "Number of Check-ins by Precinct",
@@ -193,7 +204,7 @@ approach:
 
 ```{r first-ggplot-with-plus, fig.alt="Scatter plot of check-in hour versus precinct number.", eval=FALSE, purl=FALSE}
 # Assign plot to a variable
-checkins_plot <- checkins %>%
+checkins_plot <- sample_n(checkins, 500) %>%
   ggplot(aes(x = checkin_hour, y = precinct))
 
 # Draw the plot as a dot plot
@@ -236,7 +247,7 @@ Let's create a time series plot showing the number of check-ins per hour:
 
 ```{r create-time-series, fig.alt="Time series plot showing check-ins by hour.", purl=FALSE}
 # Group data by hour and count check-ins
-hourly_data <- checkins %>%
+hourly_data <- sample_n(checkins, 500) %>%
   count(checkin_hour)
 
 # Create the time series plot
@@ -263,7 +274,7 @@ hourly_data %>%
 We can also look at the distribution of check-ins by location using a jitter plot:
 
 ```{r location-distribution, fig.alt="Scatter plot showing check-in hour distribution by location.", purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_jitter(alpha = 0.5, width = 0.2, height = 0.1) +
   labs(
@@ -276,7 +287,7 @@ checkins %>%
 Adding transparency with `alpha` helps us see where points are overlapping. We can add color based on the device used:
 
 ```{r adding-colors, fig.alt="Scatter plot of check-in hour distribution by location, colored by device.", purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_jitter(aes(color = device), alpha = 0.5, width = 0.2, height = 0.1) +
   labs(
@@ -293,7 +304,7 @@ checkins %>%
 When you have overlapping points like in our time data, another useful way to visualize the data is with a count plot, where the size of points represents frequencies:
 
 ```{r color-by-species-notes, fig.alt="Count plot of check-in hour by location, with point size showing frequency.", purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour, color = device)) +
   geom_count()
 ```
@@ -312,7 +323,7 @@ with the `device` showing in different colours. Does this give you any insights 
 ## Solution
 
 ```{r scatter-challenge, fig.alt="Scatter plot showing check-in minutes by location colored by device.", answer=TRUE, purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_minute)) +
   geom_jitter(aes(color = device),
               alpha = 0.5,
@@ -334,7 +345,7 @@ This visualization can help us see if certain devices are used for check-ins at 
 We can use boxplots to visualize the distribution of check-in hours for each location:
 
 ```{r boxplot, fig.alt="Box plot of check-in hours by location.", purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_boxplot() +
   labs(title = "Distribution of Check-in Hours by Location",
@@ -346,7 +357,7 @@ By adding points to a boxplot, we can have a better idea of the number of
 measurements and of their distribution:
 
 ```{r boxplot-with-jitter, fig.alt="Box plot of check-in hours by location with individual data points overlaid.", purl=FALSE}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_boxplot(alpha = 0) +
   geom_jitter(alpha = 0.5,
@@ -377,7 +388,7 @@ boxplot. An alternative to the boxplot is the violin plot, where the shape
 ## Solution
 
 ```{r violin-plot}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_violin(alpha = 0) +
   geom_jitter(alpha = 0.5, color = "tomato") +
@@ -399,7 +410,7 @@ making a new plot to explore the distribution of another variable within locatio
 ## Solution
 
 ```{r boxplot-exercise, fig.alt="Box plot of check-in minutes by location, with dot plot added as additional layer to show individual values."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_minute)) +
   geom_boxplot(alpha = 0) +
   geom_jitter(alpha = 0.5, width = 0.2, height = 0.2) +
@@ -417,7 +428,7 @@ checkins %>%
 ## Solution
 
 ```{r boxplot-exercise-factor, fig.alt="Box plot of check-in minutes by location with points colored by device."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location, y = checkin_minute)) +
   geom_boxplot(alpha = 0) +
   geom_jitter(aes(color = device), alpha = 0.5, width = 0.2, height = 0.2) +
@@ -437,7 +448,7 @@ Barplots are also useful for visualizing categorical data. By default,
 value of x (in this case, location) appears in the dataset.
 
 ```{r barplot-1, fig.alt="Bar plot showing counts of check-ins by location."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location)) +
   geom_bar() +
   labs(title = "Number of Check-ins by Location",
@@ -449,7 +460,7 @@ We can use the `fill` aesthetic for the `geom_bar()` geom to colour bars by
 the device used for check-in.
 
 ```{r barplot-stack, fig.alt="Stacked bar plot of check-ins by location with each device as a different color."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location)) +
   geom_bar(aes(fill = device)) +
   labs(title = "Number of Check-ins by Location and Device",
@@ -463,7 +474,7 @@ correspond to each device and put them side-by-side by using the `position`
 argument for `geom_bar()` and setting it to "dodge".
 
 ```{r barplot-dodge, fig.alt="Bar plot of check-ins by location with each device as a separate bar."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = location)) +
   geom_bar(aes(fill = device), position = "dodge") +
   labs(title = "Number of Check-ins by Location and Device",
@@ -474,7 +485,7 @@ checkins %>%
 Let's also create a bar chart showing the number of check-ins by hour:
 
 ```{r barplot-hours, fig.alt="Bar plot showing number of check-ins by hour of day."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = checkin_hour)) +
   geom_bar() +
   labs(title = "Number of Check-ins by Hour of Day",
@@ -485,7 +496,7 @@ checkins %>%
 We might want to analyze what percentage of check-ins come from each device at each location. Let's calculate this:
 
 ```{r percent-device-data}
-percent_device <- checkins %>%
+percent_device <- sample_n(checkins, 500) %>%
   count(location, device) %>%
   group_by(location) %>%
   mutate(percent = (n / sum(n)) * 100) %>%
@@ -516,7 +527,7 @@ Which hours had the highest proportion of check-ins from each device?
 
 ```{r barplot-device-hour, fig.alt="Bar plot showing proportion of check-ins by hour for each device."}
 # Calculate percentage of check-ins by hour and device
-percent_hour_device <- checkins %>%
+percent_hour_device <- sample_n(checkins, 500) %>%
   count(checkin_hour, device) %>%
   group_by(checkin_hour) %>%
   mutate(percent = (n / sum(n)) * 100) %>%
@@ -549,14 +560,14 @@ side-by-side bars will become more difficult to read.
 user to split one plot into multiple plots based on a factor included
 in the dataset. Let's use it to split our check-in counts by hour for each device:
 
-```{r facet-by-device, fig.alt="Multi-panel line plot showing check-ins by hour for each device."}
+```{r facet-fix, fig.alt="Fixed multi-panel line plot showing check-ins by hour for each device."}
 # Create hourly counts by device
-hourly_by_device <- checkins %>%
+hourly_by_device <- sample_n(checkins, 500) %>%
   count(checkin_hour, device)
 
-# Create the faceted plot
+# Create the faceted plot with explicit group aesthetic
 hourly_by_device %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
+  ggplot(aes(x = checkin_hour, y = n, group = device)) +  # Add group aesthetic
   geom_line() +
   geom_point() +
   labs(title = "Check-ins by Hour for Each Device",
@@ -587,20 +598,23 @@ hourly_by_device %>%
 
 We can also facet by both location and device to see patterns across both variables:
 
-```{r facet-by-location-device, fig.alt="Multi-panel point plot showing check-in patterns by hour for each location and device combination."}
+```{r facet-location-device-fixed, fig.alt="Fixed multi-panel point plot showing check-in patterns by hour for each location and device combination."}
 # Count check-ins by hour, location, and device
-hourly_by_loc_device <- checkins %>%
+hourly_by_loc_device <- sample_n(checkins, 500) %>%
   count(checkin_hour, location, device)
 
-# Create the faceted plot
+# Create the faceted plot - fixing the filter issue
 hourly_by_loc_device %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
+  # First filter the data
+  filter(device %in% c("DEVICE_001", "DEVICE_002")) %>%
+  # Then create the plot
+  ggplot(aes(x = checkin_hour, y = n, group = device)) +
   geom_point() +
   geom_line() +
   labs(title = "Check-ins by Hour for Each Location and Device",
        x = "Hour of Day",
        y = "Count") +
-  facet_grid(location ~ device) +
+  facet_wrap(~ location + device) +
   theme_bw() +
   theme(panel.grid = element_blank())
 ```
@@ -631,7 +645,7 @@ location_coords <- tibble(
 )
 
 # Join with our check-in data to get coordinates
-checkins_with_coords <- checkins %>%
+checkins_with_coords <- sample_n(checkins, 500) %>%
   left_join(location_coords, by = "location")
 
 # Count check-ins by location
@@ -682,7 +696,7 @@ precincts <- tibble(
   st_as_sf(wkt = "geometry", crs = 4326)
 
 # Join with check-in counts
-precinct_counts <- checkins %>%
+precinct_counts <- sample_n(checkins, 500) %>%
   count(precinct) %>%
   left_join(precincts, by = "precinct")
 
@@ -871,7 +885,7 @@ When working with election data, understanding the distribution of check-ins ove
 First, let's create histograms to show the distribution of check-ins across the day:
 
 ```{r histogram-hours, fig.alt="Histogram showing the distribution of check-ins by hour."}
-checkins %>%
+sample_n(checkins, 500) %>%
   ggplot(aes(x = checkin_hour)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Distribution of Check-ins by Hour",
@@ -884,7 +898,7 @@ We can also create a more granular view by using smaller bins:
 
 ```{r histogram-time-bins, fig.alt="Histogram showing check-ins in 15-minute intervals."}
 # Create a decimal representation of time (hour + minute/60)
-checkins_with_decimal_hour <- checkins %>%
+checkins_with_decimal_hour <- sample_n(checkins, 500) %>%
   mutate(decimal_hour = checkin_hour + checkin_minute/60)
 
 # Plot with 15-minute bins (0.25 hour)
@@ -902,7 +916,7 @@ We can create time buckets to analyze check-in patterns during specific parts of
 
 ```{r time-periods, fig.alt="Bar chart showing check-ins by time period of day."}
 # Create time periods
-checkins_with_periods <- checkins %>%
+checkins_with_periods <- sample_n(checkins, 500) %>%
   mutate(time_period = case_when(
     checkin_hour < 9 ~ "Early Morning (before 9am)",
     checkin_hour >= 9 & checkin_hour < 12 ~ "Morning (9am-12pm)",
@@ -936,7 +950,7 @@ We can also visualize the hourly check-in rate, which is useful for polling stat
 
 ```{r checkin-rate, fig.alt="Line graph showing check-ins per hour rate."}
 # Calculate check-ins per hour by location
-hourly_rate <- checkins %>%
+hourly_rate <- sample_n(checkins, 500) %>%
   count(location, checkin_hour) %>%
   rename(checkins_per_hour = n)
 
@@ -957,13 +971,13 @@ Let's examine the cumulative check-ins to see how voting activity accumulates th
 
 ```{r cumulative-checkins, fig.alt="Cumulative line graph showing total check-ins over time."}
 # Calculate cumulative check-ins by hour
-cumulative_checkins <- checkins %>%
+cumulative_checkins <- sample_n(checkins, 500) %>%
   count(checkin_hour) %>%
   arrange(checkin_hour) %>%
   mutate(cumulative = cumsum(n))
 
 # Create the cumulative plot
-cumulative_checkins %>%
+cumulative_sample_n(checkins, 500) %>%
   ggplot(aes(x = checkin_hour, y = cumulative)) +
   geom_line(size = 1.2, color = "darkblue") +
   geom_point(size = 3, color = "darkblue") +
@@ -980,7 +994,7 @@ Finally, let's compare the check-in patterns across different locations with a h
 
 ```{r location-hour-heatmap, fig.alt="Heatmap showing check-in density by hour and location."}
 # Create hour-location count data
-hour_location_counts <- checkins %>%
+hour_location_counts <- sample_n(checkins, 500) %>%
   count(location, checkin_hour)
 
 # Create the heatmap
