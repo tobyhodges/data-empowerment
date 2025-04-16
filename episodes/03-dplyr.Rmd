@@ -3,9 +3,6 @@ title: Data Wrangling with dplyr
 teaching: 25
 exercises: 15
 source: Rmd
-editor_options: 
-  markdown: 
-    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -13,71 +10,52 @@ source("data/download_data.R")
 ```
 
 ::: instructor
--   The main goal of this lesson is to introduce the dplyr package—a
-    powerful tool for data manipulation in R.
+-   This lesson works better if you have graphics demonstrating dplyr commands. You can modify [this Google Slides deck](https://docs.google.com/presentation/d/1A9abypFdFp8urAe9z7GCMjFr4aPeIb8mZAtJA2F7H0w/edit#slide=id.g652714585f_0_114) and use it for your workshop.
 
--   We will cover the basics such as selecting columns, filtering rows,
-    chaining commands with pipes, creating new columns with mutate, and
-    summarizing data by grouping.
+-   The main goal of this lesson is to introduce the dplyr package—a powerful tool for data manipulation in **`R`**.
 
--   While the dplyr functions simplify data wrangling, it's important to
-    grasp each concept step by step to build a solid foundation for your
-    data analysis workflow.
+-   We will cover the basics such as selecting columns, filtering rows, chaining commands with pipes, creating new columns with mutate, and summarizing data by grouping.
+
+-   While the dplyr functions simplify data wrangling, it's important to grasp each concept step by step to build a solid foundation for your data analysis workflow.
 :::
 
 ::: objectives
--   Understand the purpose and usage of an R package and specifically
-    the dplyr package.
+-   understand the purpose of the **`dplyr`** package.
 
--   Learn how to select specific columns from a dataframe using
-    select().
+-   Learn how to select specific columns from a data frame using **`select`**.
 
--   Learn how to filter rows based on conditions using filter().
+-   Learn how to filter rows based on conditions using **`filter()`**.
 
--   Use the pipe operator (%\>%) to seamlessly chain multiple dplyr
-    commands.
+-   Use the pipe operator **`(%\>%)`** to seamlessly chain multiple dplyr commands.
 
--   Create new columns in a dataframe with mutate(), deriving them from
-    existing data.
+-   Create new columns in a data frame with **`mutate()`**, deriving them from existing data.
 
--   Apply the split-apply-combine strategy using group_by() and
-    summarize() to generate summary statistics.
+-   Apply the split-apply-combine strategy using **`group_by()`** and **`summarize()`** to generate summary statistics.
 :::
 
 ::: questions
--   How can I select specific rows and columns from a dataframe using
-    dplyr?
+-   How can I select specific rows and columns from a data frame using dplyr?
 
--   How does the pipe operator (%\>%) help in combining multiple
-    commands into a single workflow?
+-   How does the pipe operator **`(%\>%)`** help in combining multiple commands into a single workflow?
 
--   What is the advantage of using mutate() for creating new variables,
-    and how does it work?
+-   What is the advantage of using **`mutate()`** for creating new variables, and how does it work?
 
--   How can I summarize my data by grouping observations and applying
-    summary statistics with dplyr?
+-   How can I summarize my data by grouping observations and applying summary statistics with dplyr?
 :::
 
-**`dplyr`** is a package for making tabular data wrangling easier by
-using a limited set of functions that can be combined to extract and
-summarize insights from your data.
+**`dplyr`** is a package for making tabular data wrangling easier by using a limited set of functions that can be combined to extract and summarize insights from your data.
 
-Like **`readr`**, **`dplyr`** is a part of the tidyverse. These packages
-were loaded in R's memory when we called `library(tidyverse)` earlier.
+Like **`readr`**, **`dplyr`** is a part of the tidyverse. These packages were loaded in R's memory when we called `library(tidyverse)` in the second episode.
 
 ::: callout
 ## Note
 
-The packages in the tidyverse, namely **`dplyr`**, **`tidyr`** and
-**`ggplot2`** accept both the British (e.g. *summarise*) and American
-(e.g. *summarize*) spelling variants of different function and option
-names. For this lesson, we utilize the American spellings of different
-functions; however, feel free to use the regional variant.
+The packages in the tidyverse, namely **`dplyr`**, **`tidyr`** and **`ggplot2`** accept both the British (e.g. *summarise*) and American (e.g. *summarize*) spelling variants of different function and option names. For this lesson, we utilize the American spellings of different functions; however, feel free to use the regional variant.
 :::
 
 ## Learning **`dplyr`**
 
-Similar to the previous episode, we first load the data set
+Similar to the previous episode, we first load the data set:
 
 ```{r, results="hide", purl=FALSE, message=FALSE}
 
@@ -85,67 +63,47 @@ Similar to the previous episode, we first load the data set
 library(tidyverse)
 library(here)
 
-voting_data <- read_csv(here("episodes/data", "anonymized_data.csv"), na = "NULL")
+voting_data <- read_csv(here("episodes/data", "anonymized_data.csv"))
 
 ```
 
-We can also take another look at the data record here. This could be
-useful in the next step.
+We can also take another look at the data record here. This could be useful in the next step.
 
 ```{r, results="hide", purl=FALSE, message=FALSE}
-# Get a quick summary of the dataset structure
+# Get a quick summary of the data set structure
 head(voting_data)
 ```
 
-**`dplyr`** is a powerful and intuitive package in **`R`** designed to
-make data manipulation both easy and efficient. It is part of the
-tidyverse ecosystem, which emphasizes readable, consistent syntax for
-working with data. We're going to learn some of the most common
-**`dplyr`** functions:
+**`dplyr`** is a powerful and intuitive package in **`R`** designed to make data manipulation both easy and efficient. It is part of the tidyverse ecosystem, which emphasizes readable, consistent syntax for working with data. We're going to learn some of the most common **`dplyr`** functions:
 
 -   `select()`: subset columns
 -   `filter()`: subset rows on conditions
--   `mutate()`: create new columns by using information from other
-    columns
--   `group_by()` and `summarize()`: create summary statistics on grouped
-    data
+-   `mutate()`: create new columns by using information from other columns
+-   `group_by()` and `summarize()`: create summary statistics on grouped data
 -   `arrange()`: sort results
 -   `count()`: count discrete values
 
 ## Selecting columns and filtering rows
 
-### Selecting rows
+### Selecting columns
 
-Now we use our first function of **`dplyr`** to select only a part of
-our data set. In our case, for example, we are interested in seeing
-which different precinct id's are in our dataset. There are several ways
-to realize this. One of these possibilities is to use the **`select`**
-function of **`dplyr`**: The function accepts several so-called
-arguments. In our case, we have to specify which data set we want to
-apply the select to and what we want to select for.
+Now we use our first function of **`dplyr`** to select only a part of our data set. In our case, for example, we are interested in seeing which different precinct id's are in our data set. There are several ways to accomplish this. One of these possibilities is to use the **`select`** function of **`dplyr`**: The function accepts several so-called arguments. In our case, we have to specify which data set we want to apply the select to and what we want to select for.
 
 ```{r, results="hide", purl=FALSE}
-# to select columns throughout the dataframe
+# to select columns throughout the data frame
 select(voting_data, precinct)
 ```
 
-Several columns can also be selected using the **`select`** function.
-This can be particularly helpful with larger data sets. Theoretically,
-this function can also be performed without the **`dplyr`** packet, but
-the following chapter will show why this packet is used so much in
-combination with data, as many of the actions shown below would not be
-possible without the dplyr functions
+Several columns can also be selected using the **`select`** function. This can be particularly helpful with larger data sets. Theoretically, this function can be performed using subsetting instead of the **`select`** function, as seen below, but it's best practice to use dplyr functions when possible.
 
 ```{r, results="hide", purl=FALSE}
-# to select columns throughout the dataframe
+# to select columns throughout the data frame
 select(voting_data, precinct, checkin_time)
 # to do the same thing with subsetting instead of using dplyr
 voting_data[c("precinct", "checkin_time")]
 ```
 
-Finally, adjacent columns can also be selected directly with a **`:`**.
-This means that the individual column names do not have to be written
-out directly:
+Finally, adjacent columns can also be selected directly with a **`:`**. This means that the individual column names do not have to be written out directly:
 
 ```{r, results="hide", purl=FALSE}
 # to select a series of connected columns
@@ -154,63 +112,42 @@ select(voting_data, checkin_time:precinct)
 
 ### Filtering rows
 
-We may now be interested in how we can obtain information on a specific
-precinct. To choose rows based on specific criteria, we can use the
-`filter()` function. The argument after the dataframe is the condition
-we want our final dataframe to adhere to (e.g. precinct number is 1017):
+We may now be interested in how we can obtain information on a specific precinct. To choose rows based on specific criteria, we can use the `filter()` function. The argument after the data frame is the condition we want our final data frame to adhere to (e.g. precinct number is 1017):
 
 ```{r, purl=FALSE}
-# filters observations where village name is "Chirodzo"
+# filters observations where precinct is "1017"
 filter(voting_data, precinct == "1017")
 ```
 
-You may also have noticed that the output from these call doesn't run
-off the screen anymore. It's one of the advantages of `tbl_df` (also
-called tibble), the central data class in the tidyverse, compared to
-normal dataframes in R.
-
-We can also specify multiple conditions within the `filter()` function.
-We can combine conditions using either "and" or "or" statements. In an
-"and" statement, an observation (row) must meet **every** criteria to be
-included in the resulting dataframe. To form "and" statements within
-dplyr, we can pass our desired conditions as arguments in the `filter()`
-function, separated by commas. An application example would be, that we
-want to receive all data from a precinct and a counting machine within
-this precinct:
+we can also specify multiple conditions within the `filter()` function by using "and" or "or" statements to combine conditions. In an "and" statement, an observation (row) must meet **every** criteria to be included in the resulting data frame. To form "and" statements within dplyr, we can pass our desired conditions as arguments in the `filter()` function, separated by commas. An application example would be, that we want to receive all data from a precinct and a counting machine within this precinct:
 
 ```{r, purl=FALSE}
 
 # filters observations with "and" operator (comma)
-# output dataframe satisfies ALL specified conditions
+# output data frame satisfies ALL specified conditions
 filter(voting_data, precinct == "1017",
                    device == "DEVICE_738")
 
 # filters observations with "&" logical operator
-# output dataframe satisfies ALL specified conditions and is the same as prior, just using & instead of ,
+# outputs the same tibble as before, the only change is the switch from , to &
 filter(voting_data, precinct == "1017" &
                    device == "DEVICE_738")
 ```
 
-In an "or" statement, observations must meet *at least one* of the
-specified conditions. To form "or" statements we use the logical
-operator for "or," which is the vertical bar (\|):
+In an "or" statement, observations must meet *at least one* of the specified conditions. To form "or" statements we use the logical operator for "or," which is the vertical bar (\|):
 
 ```{r, purl=FALSE}
 # filters observations with "|" logical operator
-# output dataframe satisfies AT LEAST ONE of the specified conditions
+# output data frame satisfies AT LEAST ONE of the specified conditions
 filter(voting_data, precinct == "1017" | precinct == "2866")
 ```
 
-If you go through the individual pages, you will notice that both
-precincts are now included in the data set. Finally, comparison criteria
-can also be used. For example, you could filter for all precincts whose
-id is between 1000 and 2000. For the sake of clarity, the distinct
-operator is also used, which helps to display only unique entries.
+If you go through the individual pages, you will notice that both precincts are now included in the data set. Finally, comparison criteria can also be used. For example, you could filter for all precincts whose id is between 1000 and 2000. For the sake of clarity, the distinct operator is also used, which helps to display only unique entries.
 
 ```{r, purl=FALSE}
 
 # filters observations with "and" operator (comma)
-# output dataframe satisfies ALL specified conditions
+# output data frame satisfies ALL specified conditions
 filter(voting_data, precinct >= 1000,
                     precinct <= 2000) %>% distinct(precinct, .keep_all = TRUE)
 
@@ -218,34 +155,39 @@ filter(voting_data, precinct >= 1000,
 
 ## Pipes
 
-When you want to both filter rows and choose columns at the same time,
-pipes can make your code much easier to read. Pipes let you write one
-step after another without saving many temporary objects or writing
-complex nested commands.
+When you want to both filter rows and choose columns at the same time, pipes can make your code much easier to read. Pipes let you write one step after another without saving many temporary objects or writing complex nested commands.
 
 There are three ways to do this:
 
--   Intermediate steps: You first filter your data and save it to a new
-    object, and then you select the columns from that object. This
-    method is clear, but it can create many extra objects in your
-    workspace.
+-   Intermediate steps: You first filter your data and save it to a new object, and then you select the columns from that object. This method is clear, but it can create many extra objects in your workspace.
 
--   Nested functions: You can put one function inside another (for
-    example, putting filter() inside select()). This can work, but if
-    you add too many functions together, it might become confusing.
+```{r, purl=FALSE}
+# Step 1: Filter and save to a new object
+filtered_data <- filter(voting_data, precinct == "1017")
 
--   Using pipes: **`pipes`** allow you to connect your commands in a
-    simple, step-by-step way. In R, the most common pipe is **`%\>%`**.
-    It takes the output from the left side and sends it to the function
-    on the right side. You can think of it as the word “then.”
+# Step 2: Select specific columns from the filtered data
+final_data <- select(filtered_data, precinct, checkin_time)
+```
 
-Pipes let you take the output of one function and send it directly to
-the next, which is useful when you need to do many things to the same
-dataset. There are two Pipes in R: 1) `%>%` (called magrittr pipe; made
-available via the **`magrittr`** package, installed automatically with
-**`dplyr`**) or 2) `|>`. Both types behave similarly and in most cases
-in the same way. Therefore, the choice of which variant to choose is
-primarily a matter of taste.
+-   Nested functions: You can put one function inside another (for example, putting filter() inside select()). This can work, but if you add too many functions together, it might become confusing.
+
+```{r, purl=FALSE}
+# Do it all in one go, nesting the functions
+final_data <- select(
+  filter(voting_data, precinct == "1017"),
+  precinct, checkin_time
+)
+```
+
+-   Using pipes: **`pipes`** allow you to connect your commands in a simple, step-by-step way. In R, the most common pipe is **`%\>%`**. It takes the output from the left side and sends it to the function on the right side. You can think of it as the word “then.”
+
+```{r, purl=FALSE}
+final_data <- voting_data %>%
+  filter(precinct == "1017") %>%
+  select(precinct, checkin_time)
+```
+
+Pipes let you take the output of one function and send it directly to the next, which is useful when you need to do many things to the same data set. There are two Pipes in R: 1) `%>%` (called magrittr pipe; made available via the **`magrittr`** package, installed automatically with **`dplyr`**) or 2) `|>` (called the native pipe, included with base R). Both types behave similarly and in most cases in the same way. Therefore, the choice of which variant to choose is primarily a matter of taste.
 
 ```{r, purl=FALSE}
 # the following example is run using magrittr pipe but the output will be same with the native pipe
@@ -258,47 +200,14 @@ voting_data %>%
 #  select(precinct, checkin_time)
 ```
 
-can be read as: “Take the **`voting_data`**, then keep only the rows
-where precinct is **`1017`**, then select just the **`precinct`** and
-**`checkin_time`** columns.”
+So, in the above code, we use the pipe to send the `voting_data` data set first through `filter()` to keep rows where `precinct` is "1017", then through `select()` to keep only the columns from `precinct` and `checkin_time`. Since `%>%` takes the object on its left and passes it as the first argument to the function on its right, we don't need to explicitly include the data frame as an argument to the `filter()` and `select()` functions any more.
 
-So, in the above code, we use the pipe to send the `voting_data` dataset
-first through `filter()` to keep rows where `precinct` is "1017", then
-through `select()` to keep only the columns from `precinct` and
-`checkin_time`. Since `%>%` takes the object on its left and passes it
-as the first argument to the function on its right, we don't need to
-explicitly include the dataframe as an argument to the `filter()` and
-`select()` functions any more.
-
-As described above, some may find it helpful to read the pipe like the
-word "then". For instance, in the above example, we take the dataframe
-`voting_data`, *then* we `filter` for rows with `precinct == "1017"`,
-*then* we `select` columns `precinct and checkin_time`. The **`dplyr`**
-functions by themselves are somewhat simple, but by combining them into
-linear workflows with the pipe, we can accomplish more complex data
-wrangling operations.
-
-If we want to create a new object, so a new list, with this smaller
-version of the data, we can assign it a new name:
-
-```{r, purl=FALSE}
-voting_data_filtered <- voting_data %>%
-  filter(precinct == "1017") %>%
-  select(precinct, checkin_time)
-
-voting_data_filtered
-
-```
-
-Note that the final dataframe (`voting_data_filtered`) is the leftmost
-part of this expression.
+As described above, some may find it helpful to read the pipe like the word "then". For instance, in the above example, we take the data frame `voting_data`, *then* we `filter` for rows with `precinct == "1017"`, *then* we `select` columns `precinct and checkin_time`. The **`dplyr`** functions by themselves are somewhat simple, but by combining them into linear workflows with the pipe, we can accomplish more complex data wrangling operations.
 
 :::: challenge
 ## Exercise
 
-Using pipes, subset the `voting_data` dataset to include only
-observations where the `device` is `"DEVICE_738"` and retain only the
-columns `precinct`, `checkin_time`, and `device`.
+Using pipes, subset the `voting_data` data set to include only observations where the `device` is `"DEVICE_738"` and retain only the columns `precinct`, `checkin_time`, and `device`.
 
 ::: solution
 ## Solution
@@ -313,14 +222,9 @@ voting_data %>%
 
 ## Mutate
 
-Sometimes you want to create new columns based on values in existing
-columns. For example, you might need to perform simple math operations
-on a column to create a new variable. For this, we use the `mutate()`
-function.
+Sometimes you want to create new columns based on values in existing columns. For example, you might need to perform simple math operations on a column to create a new variable. For this, we use the `mutate()` function.
 
-Imagine we want to create a new column that doubles the value of the
-`precinct` column. This new column can help us explore the data in a
-different way.
+Imagine we want to create a new column that doubles the value of the `precinct` column. This new column can help us explore the data in a different way.
 
 Here's how you can use `mutate()` to create the new column:
 
@@ -329,10 +233,7 @@ voting_data %>%
     mutate(precinct_double = as.numeric(precinct) * 2)
 ```
 
-This may not look like a typical operation that tells us much about the
-data, but with a more complex operation we could, for example, count the
-number of different counting machines per precinct and add it to our
-data set:
+This may not look like a typical operation that tells us much about the data, but with a more complex operation we could, for example, count the number of different counting machines per precinct and add it to our data set:
 
 ```{r, purl=FALSE}
 voting_data_added_column <- voting_data %>%
@@ -343,46 +244,32 @@ voting_data_added_column <- voting_data %>%
 voting_data_added_column
 ```
 
-The code may look a little cryptic, but it can be broken down into
-individual simple sub-operations:
+The code may look a little cryptic, but it can be broken down into individual simple sub-operations:
 
 -   We first group the data by precinct.
 
--   Then, within each precinct group, we use **`mutate()`** with
-    **`n_distinct(device)`** to count how many unique counting machines
-    are present and add a column of the counted machines.
+-   Then, within each precinct group, we use **`mutate()`** with **`n_distinct(device)`** to count how many unique counting machines are present and add a column of the counted machines.
 
--   Finally, we use **`ungroup()`** to remove the grouping from the
-    dataset. To simplify the list a little, we will only show the unique
-    precincts to illustrate the effect of the previous operation:
+-   Finally, we use **`ungroup()`** to remove the grouping from the data set. To simplify the list a little, we will only show the unique precincts to illustrate the effect of the previous operation:
 
 ```{r}
 voting_data_added_column %>%
   distinct(precinct, counting_machines)
 ```
 
-This code filters out duplicate entries, showing just one record for
-each unique precinct and the new coloumn we just added.
+This code filters out duplicate entries, showing just one record for each unique precinct and the new column we just added.
 
 :::: challenge
 ## Exercise
 
-Using pipes and the `voting_data` dataset, create a new dataframe that
-meets the following criteria:
+Using pipes and the `voting_data` data set, create a new data frame that meets the following criteria:
 
--   Create a new column called `precinct_category` by converting the
-    `precinct` column to numeric.
--   Assign a category to each row based on the numeric value of
-    `precinct`:
+-   Create a new column called `precinct_category` by converting the `precinct` column to numeric.
+-   Assign a category to each row based on the numeric value of `precinct`:
     -   If `precinct` is less than 1500, assign `"small"`.
     -   If `precinct` is greater than 1500, assign `"large"`.
 
-**Hint**: Use the `mutate()` function along with `ifelse()` to create
-the new column. The `ifelse()` works similar to the operations we used
-in the pipes section. So our criteria must be enclosed in the `ifelse()`
-brackets. For example `ifelse(precinct< 1500, "small", "large")`. This
-will assign a small to every precinct with the number below 1500 and a
-large for every number above or equal to 1500.
+**Hint**: Use the `mutate()` function along with `ifelse()` to create the new column. The `ifelse()` works similar to the operations we used in the pipes section. So our criteria must be enclosed in the `ifelse()` brackets. For example `ifelse(precinct< 1500, "small", "large")`. This will assign a small to every precinct with the number below 1500 and a large for every number above or equal to 1500.
 
 ::: solution
 ## Solution
@@ -397,25 +284,20 @@ voting_precinct_category
 
 ## Split-apply-combine data analysis and the summarize() function
 
-We have seen the usage of `group_by()` in the section before, but now we
-will explain how to use it. Many data analysis tasks follow a pattern
-known as *split-apply-combine*:\
+We have seen the usage of `group_by()` in the section before, but now we will explain how to use it. Many data analysis tasks follow a pattern known as *split-apply-combine*:\
 1. **Split** the data into groups.\
 2. **Apply** some analysis or calculation to each group.\
 3. **Combine** the results into a summary.
 
 The **`dplyr`** package makes this easy with two main functions:\
 - `group_by()` to define how you want to split the data.\
-- `summarize()` to apply one or more calculations on each group and
-return a summary.
+- `summarize()` to apply one or more calculations on each group and return a summary.
 
 ### The `group_by()` and `summarize()` functions
 
 #### Example 1: Counting total check-ins by precinct
 
-Suppose we want to see how many total check-ins there were for each
-precinct in our dataset. We can do this by grouping the data by the
-`precinct` column and then summarizing:
+Suppose we want to see how many total check-ins there were for each precinct in our data set. We can do this by grouping the data by the `precinct` column and then summarizing:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -423,20 +305,15 @@ voting_data %>%
   summarize(total_checkins = n())
 ```
 
-1.  `group_by(precinct)` tells R to split the data into groups, where
-    each group corresponds to one precinct.
+1.  `group_by(precinct)` tells R to split the data into groups, where each group corresponds to one precinct.
 
-2.  `summarize(total_checkins = n())` counts how many rows (check-ins)
-    are in each group.
+2.  `summarize(total_checkins = n())` counts how many rows (check-ins) are in each group.
 
-3.  The result is a table where each row represents a precinct and shows
-    the total number of check-ins for that precinct.
+3.  The result is a table where each row represents a precinct and shows the total number of check-ins for that precinct.
 
 #### Example 2: Grouping by multiple columns
 
-We can group by more than one column if we need a more detailed
-breakdown. For instance, to see how many check-ins each device recorded
-in each precinct:
+We can group by more than one column if we need a more detailed breakdown. For instance, to see how many check-ins each device recorded in each precinct:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -444,19 +321,13 @@ voting_data %>%
   summarize(total_checkins = n())
 ```
 
-Now, our data is split by both precinct and device, and we see how many
-check-ins occurred for each device within each precinct.
+Now, our data is split by both precinct and device, and we see how many check-ins occurred for each device within each precinct.
 
-You may have seen that **`R`** has given us a warning about the
-grouping. This warning has no influence on the output of the program but
-shows that we have triggered a grouping by the **`summarise()`**
-function. If we want to ungroup the output we need to make use of the
-**`ungroup()`** function.
+You may have seen that **`R`** has given us a warning about the grouping. This warning has no influence on the output of the program but shows that we have triggered a grouping by the **`summarise()`** function. If we want to ungroup the output we need to make use of the **`ungroup()`** function.
 
 #### Ungrouping
 
-After you use group_by(), **`R`** remembers how your data is grouped. If
-you want to remove grouping, you can use the **`ungroup()`** function:
+After you use group_by(), **`R`** remembers how your data is grouped. If you want to remove grouping, you can use the **`ungroup()`** function:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -465,15 +336,11 @@ voting_data %>%
   ungroup()
 ```
 
-The final table will no longer be considered “grouped,” which can be
-helpful if you plan to do further operations that don’t rely on
-grouping.
+The final table will no longer be considered “grouped,” which can be helpful if you plan to do further operations that don’t rely on grouping.
 
 #### Example 3: Summarizing multiple values at once
 
-You’re not limited to a single summary statistic. For example, you might
-want both the total number of check-ins and the number of unique devices
-for each precinct. You can combine these in one **`summarize()`** call:
+You’re not limited to a single summary statistic. For example, you might want both the total number of check-ins and the number of unique devices for each precinct. You can combine these in one **`summarize()`** call:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -486,14 +353,11 @@ voting_data %>%
 
 1.  `total_checkins = n()` counts how many rows are in each group.
 
-2.  `unique_devices = n_distinct(device)` counts how many unique devices
-    were used in that precinct.
+2.  `unique_devices = n_distinct(device)` counts how many unique devices were used in that precinct.
 
 #### Example 4: Filtering before summarizing
 
-If you need to exclude certain rows before summarizing, you can use
-**`filter()`**. For example, to include only check-ins from a specific
-location (say LOCATION_001), do this:
+If you need to exclude certain rows before summarizing, you can use **`filter()`**. For example, to include only check-ins from a specific location (say LOCATION_001), do this:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -502,15 +366,11 @@ voting_data %>%
   summarize(total_checkins = n())
 ```
 
-This split-apply-combine process first filters the dataset, then groups
-by precinct, and finally calculates the number of rows per precinct in
-the filtered data.
+This split-apply-combine process first filters the data set, then groups by precinct, and finally calculates the number of rows per precinct in the filtered data.
 
-#### Sorting your results with arrange()
+#### Example 5: Sorting your results with arrange()
 
-Sometimes, after summarizing, you want to sort your results. You can use
-**`arrange()`** to reorder rows. For example, to list precincts from
-most check-ins to fewest:
+Sometimes, after summarizing, you want to sort your results. You can use **`arrange()`** to reorder rows. For example, to list precincts from most check-ins to fewest:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -519,25 +379,20 @@ voting_data %>%
   arrange(desc(total_checkins))
 ```
 
--   `desc(total_checkins)` sorts the table in descending order based on
-    the `total_checkins` column.
+-   `desc(total_checkins)` sorts the table in descending order based on the `total_checkins` column.
 
 ### Counting
 
-When working with data, we often want to know how many observations we
-have for each factor or combination of factors. **`dplyr`** provides the
-**`count()`** function to make this task very easy.
+When working with data, we often want to know how many observations we have for each factor or combination of factors. **`dplyr`** provides the **`count()`** function to make this task very easy.
 
-For example, if we want to count the number of check-ins for each
-precinct, we would do:
+For example, if we want to count the number of check-ins for each precinct, we would do:
 
 ```{r, purl=FALSE}
 voting_data %>%
     count(precinct)
 ```
 
-If you want the results sorted in decreasing order (i.e. the precinct
-with the most check-ins appears first), you can use the sort argument:
+If you want the results sorted in decreasing order (i.e. the precinct with the most check-ins appears first), you can use the sort argument:
 
 ```{r, purl=FALSE}
 voting_data %>%
@@ -547,8 +402,7 @@ voting_data %>%
 ::::: challenge
 ## Exercise
 
-How many check-ins were recorded for each device? Are there any devices
-with notably high or low numbers of check-ins?
+How many check-ins were recorded for each device? Are there any devices with notably high or low numbers of check-ins?
 
 ::: solution
 ## Solution
@@ -559,11 +413,9 @@ voting_data %>%
 ```
 :::
 
-For the precinct 3704 , find the device that recorded the most
-check-ins.
+For the precinct 3704 , find the device that recorded the most check-ins.
 
-**Hint:** First, group the data by device to count the number of
-check-ins per combination. Then, arrange them in descending order.
+**Hint:** First, group the data by device to count the number of check-ins per combination. Then, arrange them in descending order.
 
 ::: solution
 ## Solution
@@ -582,8 +434,8 @@ precinct_checkins
 :::::
 
 ::: keypoints
--   Use the `dplyr` package to manipulate dataframes.
--   Use `select()` to choose variables from a dataframe.
+-   Use the `dplyr` package to manipulate data frames.
+-   Use `select()` to choose variables from a data frame.
 -   Use `filter()` to choose data based on values.
 -   Use `group_by()` and `summarize()` to work with subsets of data.
 -   Use `mutate()` to create new variables.
