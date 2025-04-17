@@ -736,16 +736,21 @@ name. By default, `write_csv()` will overwrite any files of the same name withou
 warning!
 
 Additionally, you may have noticed we included the file path when specifying the 
-name of the new CSV. When creating any sort of new file, whether that be an image, 
-CSV, or otherwise, R will place the file in the current working directory! In 
-other words, R will always put new files in the same file as the RMarkdown you're 
-working out of.
+name of the new CSV. When creating any sort of new file -- whether that be an image, 
+CSV, or otherwise -- R will place the file in the current working directory! In 
+other words, R will always place new files in the same folder as the RMarkdown you're 
+working in, unless specified otherwise.
 
 Since we have a specific folder (called `"data"`) to store our csv files, we
-can specify that we want the new CSV file to go in that folder by adding `"data/"`
-before the name of the new file!
+specify that we want the new CSV file to go in that folder by adding `"data/"`
+before the file name!
 
-Note: similarly to reading in CSV files, **`readr`** has a second version of
+If you want to output your new csv to a different file outside of the working 
+directory, you can use an entire file path (ex. 
+`"C:/Users/name/Documents/anonymized_data_2.csv"`) to specify exactly where you 
+want the file to be saved.
+
+Note: similarly to reading in CSV files, **`readr`** has a alternate version of
 `write_csv()` called `write_csv2()` that uses commas as decimal separators and 
 semicolons as field delimiters.
 
