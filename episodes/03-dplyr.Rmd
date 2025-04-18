@@ -10,7 +10,7 @@ source("data/download_data.R")
 ```
 
 ::: instructor
--   This lesson works better if you have graphics demonstrating dplyr commands. You can modify [this Google Slides deck](https://docs.google.com/presentation/d/1A9abypFdFp8urAe9z7GCMjFr4aPeIb8mZAtJA2F7H0w/edit#slide=id.g652714585f_0_114) and use it for your workshop.
+-   If you would like additional information and visual representation of the function, the following site showcases some good tutorials and visuals: <https://tidydatatutor.com/>
 
 -   The main goal of this lesson is to introduce the dplyr package—a powerful tool for data manipulation in **`R`**.
 
@@ -110,6 +110,8 @@ Finally, adjacent columns can also be selected directly with a **`:`**. This mea
 select(voting_data, checkin_time:precinct)
 ```
 
+Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20island,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
+
 ### Filtering rows
 
 We may now be interested in how we can obtain information on a specific precinct. To choose rows based on specific criteria, we can use the `filter()` function. The argument after the data frame is the condition we want our final data frame to adhere to (e.g. precinct number is 1017):
@@ -152,6 +154,8 @@ filter(voting_data, precinct >= 1000,
                     precinct <= 2000) %>% distinct(precinct, .keep_all = TRUE)
 
 ```
+
+Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20filter%28bill_length_mm%20%3E%2045%29&d=2025-04-18&lang=r&v=v1)
 
 ## Pipes
 
@@ -259,6 +263,8 @@ voting_data_added_column %>%
 
 This code filters out duplicate entries, showing just one record for each unique precinct and the new column we just added.
 
+Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%20%25%3E%25%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20mutate%28bill_volume%20%3D%20bill_length_mm%20*%20bill_depth_mm%29&d=2025-04-18&lang=r&v=v1)
+
 :::: challenge
 ## Exercise
 
@@ -355,6 +361,9 @@ voting_data %>%
 
 2.  `unique_devices = n_distinct(device)` counts how many unique devices were used in that precinct.
 
+Additional Examples of `group_by()` and `summarize()` can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20summarise%28Avg_Bill_Length%20%3D%20mean%28bill_length_mm%29%29&d=2025-04-18&lang=r&v=v1)
+
+
 #### Example 4: Filtering before summarizing
 
 If you need to exclude certain rows before summarizing, you can use **`filter()`**. For example, to include only check-ins from a specific location (say LOCATION_001), do this:
@@ -380,6 +389,8 @@ voting_data %>%
 ```
 
 -   `desc(total_checkins)` sorts the table in descending order based on the `total_checkins` column.
+
+Another Example for `arrage()` can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20arrange%28bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
 
 ### Counting
 
