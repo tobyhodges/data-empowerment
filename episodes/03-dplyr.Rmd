@@ -10,31 +10,32 @@ source("data/download_data.R")
 ```
 
 ::: instructor
--   If you would like additional information and visual representation of the function, the following site showcases some good tutorials and visuals: <https://tidydatatutor.com/>
 
 -   The main goal of this lesson is to introduce the dplyr package—a powerful tool for data manipulation in **`R`**.
 
 -   We will cover the basics such as selecting columns, filtering rows, chaining commands with pipes, creating new columns with mutate, and summarizing data by grouping.
 
 -   While the dplyr functions simplify data wrangling, it's important to grasp each concept step by step to build a solid foundation for your data analysis workflow.
+
+-   If you would like additional information and visual representation of the function, the following site showcases some good tutorials and visuals: <https://tidydatatutor.com/>
 :::
 
 ::: objectives
--   understand the purpose of the **`dplyr`** package.
+-   Understand the purpose of the **`dplyr`** package.
 
--   Learn how to select specific columns from a data frame using **`select`**.
+-   Learn how to select specific columns from a tibble using **`select`**.
 
 -   Learn how to filter rows based on conditions using **`filter()`**.
 
 -   Use the pipe operator **`(%\>%)`** to seamlessly chain multiple dplyr commands.
 
--   Create new columns in a data frame with **`mutate()`**, deriving them from existing data.
+-   Create new columns in a tibble with **`mutate()`**, deriving them from existing data.
 
 -   Apply the split-apply-combine strategy using **`group_by()`** and **`summarize()`** to generate summary statistics.
 :::
 
 ::: questions
--   How can I select specific rows and columns from a data frame using dplyr?
+-   How can I select specific rows and columns from a tibble using dplyr?
 
 -   How does the pipe operator **`(%\>%)`** help in combining multiple commands into a single workflow?
 
@@ -45,7 +46,7 @@ source("data/download_data.R")
 
 **`dplyr`** is a package for making tabular data wrangling easier by using a limited set of functions that can be combined to extract and summarize insights from your data.
 
-Like **`readr`**, **`dplyr`** is a part of the tidyverse. These packages were loaded in R's memory when we called `library(tidyverse)` in the second episode.
+As covered in "Starting with Data Episode, **`dplyr`** is also part of the tidyverse and can be loaded in R's memory when we call `library(tidyverse)`.
 
 ::: callout
 ## Note
@@ -63,7 +64,7 @@ Similar to the previous episode, we first load the data set:
 library(tidyverse)
 library(here)
 
-voting_data <- read_csv(here("episodes/data", "anonymized_data.csv"))
+voting_data <- read_csv(here("data", "anonymized_data.csv"))
 
 ```
 
@@ -87,17 +88,17 @@ head(voting_data)
 
 ### Selecting columns
 
-Now we use our first function of **`dplyr`** to select only a part of our data set. In our case, for example, we are interested in seeing which different precinct id's are in our data set. There are several ways to accomplish this. One of these possibilities is to use the **`select`** function of **`dplyr`**: The function accepts several so-called arguments. In our case, we have to specify which data set we want to apply the select to and what we want to select for.
+Now we use our first function of **`dplyr`** to select only a part of our data set. In our case, for example, we are interested in seeing which different precinct id's are in our data set. There are several ways to accomplish this. One of these possibilities is to use the **`select`** function of **`dplyr`**: The function accepts several arguments, including the original data set and the column(s) to isolate. In our case, this would be `voting_data` and `precinct`, as seen below:
 
 ```{r, results="hide", purl=FALSE}
-# to select columns throughout the data frame
+# to select columns throughout the tibble
 select(voting_data, precinct)
 ```
 
 Several columns can also be selected using the **`select`** function. This can be particularly helpful with larger data sets. Theoretically, this function can be performed using subsetting instead of the **`select`** function, as seen below, but it's best practice to use dplyr functions when possible.
 
 ```{r, results="hide", purl=FALSE}
-# to select columns throughout the data frame
+# to select columns throughout the tibble
 select(voting_data, precinct, checkin_time)
 # to do the same thing with subsetting instead of using dplyr
 voting_data[c("precinct", "checkin_time")]
@@ -114,19 +115,19 @@ Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=
 
 ### Filtering rows
 
-We may now be interested in how we can obtain information on a specific precinct. To choose rows based on specific criteria, we can use the `filter()` function. The argument after the data frame is the condition we want our final data frame to adhere to (e.g. precinct number is 1017):
+We may now be interested in how we can obtain information on a specific precinct. To choose rows based on specific criteria, we can use the `filter()` function. The argument after the tibble is the condition we want our final tibble to adhere to (e.g. precinct number is 1017):
 
 ```{r, purl=FALSE}
 # filters observations where precinct is "1017"
 filter(voting_data, precinct == "1017")
 ```
 
-we can also specify multiple conditions within the `filter()` function by using "and" or "or" statements to combine conditions. In an "and" statement, an observation (row) must meet **every** criteria to be included in the resulting data frame. To form "and" statements within dplyr, we can pass our desired conditions as arguments in the `filter()` function, separated by commas. An application example would be, that we want to receive all data from a precinct and a counting machine within this precinct:
+We can also specify multiple conditions within the **`filter()`** function by using ‘and’ or ‘or’ statements to combine conditions. In an ‘and’ statement, an observation (row) must meet *all* criteria to be included in the resulting tibble. To form ‘and’ statements within dplyr, we can pass our desired conditions as arguments in the **`filter()`** function, separated by commas. An application example would be that we want to receive all data from a precinct and a counting machine within this precinct:
 
 ```{r, purl=FALSE}
 
 # filters observations with "and" operator (comma)
-# output data frame satisfies ALL specified conditions
+# output tibble satisfies ALL specified conditions
 filter(voting_data, precinct == "1017",
                    device == "DEVICE_738")
 
@@ -140,16 +141,18 @@ In an "or" statement, observations must meet *at least one* of the specified con
 
 ```{r, purl=FALSE}
 # filters observations with "|" logical operator
-# output data frame satisfies AT LEAST ONE of the specified conditions
+# output tibble satisfies AT LEAST ONE of the specified conditions
 filter(voting_data, precinct == "1017" | precinct == "2866")
 ```
 
-If you go through the individual pages, you will notice that both precincts are now included in the data set. Finally, comparison criteria can also be used. For example, you could filter for all precincts whose id is between 1000 and 2000. For the sake of clarity, the distinct operator is also used, which helps to display only unique entries.
+If you go through the individual pages, you will notice that both precincts are now included in the data set.
+
+Finally, comparison criteria can also be used. For example, you could filter for all precincts whose id is between 1000 and 2000. For the sake of clarity, the distinct operator is also used, which helps to display only unique entries.
 
 ```{r, purl=FALSE}
 
 # filters observations with "and" operator (comma)
-# output data frame satisfies ALL specified conditions
+# output tibble satisfies ALL specified conditions
 filter(voting_data, precinct >= 1000,
                     precinct <= 2000) %>% distinct(precinct, .keep_all = TRUE)
 
@@ -163,7 +166,7 @@ When you want to both filter rows and choose columns at the same time, pipes can
 
 There are three ways to do this:
 
--   Intermediate steps: You first filter your data and save it to a new object, and then you select the columns from that object. This method is clear, but it can create many extra objects in your workspace.
+-   Intermediate steps: You first filter your data and save it to a new object. Next you select the columns from that object. This method is clear, but it can create many extra objects in your work space.
 
 ```{r, purl=FALSE}
 # Step 1: Filter and save to a new object
@@ -204,9 +207,9 @@ voting_data %>%
 #  select(precinct, checkin_time)
 ```
 
-So, in the above code, we use the pipe to send the `voting_data` data set first through `filter()` to keep rows where `precinct` is "1017", then through `select()` to keep only the columns from `precinct` and `checkin_time`. Since `%>%` takes the object on its left and passes it as the first argument to the function on its right, we don't need to explicitly include the data frame as an argument to the `filter()` and `select()` functions any more.
+So, in the above code, we use the pipe to send the `voting_data` data set first through `filter()` to keep rows where `precinct` is "1017", then through `select()` to keep only the columns from `precinct` and `checkin_time`. Since `%>%` takes the object on its left and passes it as the first argument to the function on its right, we don't need to explicitly include the tibble as an argument to the `filter()` and `select()` functions any more.
 
-As described above, some may find it helpful to read the pipe like the word "then". For instance, in the above example, we take the data frame `voting_data`, *then* we `filter` for rows with `precinct == "1017"`, *then* we `select` columns `precinct and checkin_time`. The **`dplyr`** functions by themselves are somewhat simple, but by combining them into linear workflows with the pipe, we can accomplish more complex data wrangling operations.
+As described above, some may find it helpful to read the pipe like the word "then". For instance, in the above example, we take the tibble `voting_data`, *then* we `filter` for rows with `precinct == "1017"`, *then* we `select` columns `precinct and checkin_time`. The **`dplyr`** functions by themselves are somewhat simple, but by combining them into linear workflows with the pipe, we can accomplish more complex data wrangling operations.
 
 :::: challenge
 ## Exercise
@@ -268,14 +271,14 @@ Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=
 :::: challenge
 ## Exercise
 
-Using pipes and the `voting_data` data set, create a new data frame that meets the following criteria:
+Using pipes and the `voting_data` data set, create a new tibble that meets the following criteria:
 
--   Create a new column called `precinct_category` by converting the `precinct` column to numeric.
+-   Create a new column called `precinct_category`
 -   Assign a category to each row based on the numeric value of `precinct`:
     -   If `precinct` is less than 1500, assign `"small"`.
     -   If `precinct` is greater than 1500, assign `"large"`.
 
-**Hint**: Use the `mutate()` function along with `ifelse()` to create the new column. The `ifelse()` works similar to the operations we used in the pipes section. So our criteria must be enclosed in the `ifelse()` brackets. For example `ifelse(precinct< 1500, "small", "large")`. This will assign a small to every precinct with the number below 1500 and a large for every number above or equal to 1500.
+**Hint**: Use the `mutate()` function along with `ifelse()` to create the new column. The `ifelse()` works similar to the operations we used in the pipes section. So our criteria must be enclosed in the `ifelse()` brackets. For example `ifelse(number< 10, "smaller then 10", "larger then 10")`. This will assign a smaller then 10 to every number below 10 and a large then 10 for every number above or equal to 10.
 
 ::: solution
 ## Solution
@@ -290,7 +293,7 @@ voting_precinct_category
 
 ## Split-apply-combine data analysis and the summarize() function
 
-We have seen the usage of `group_by()` in the section before, but now we will explain how to use it. Many data analysis tasks follow a pattern known as *split-apply-combine*:\
+We've seen the usage of `group_by()` in the section before, but now we're going to see how it's typically used in analytical tasks. Many data analysis tasks follow a pattern known as *split-apply-combine*:\
 1. **Split** the data into groups.\
 2. **Apply** some analysis or calculation to each group.\
 3. **Combine** the results into a summary.
@@ -362,7 +365,6 @@ voting_data %>%
 2.  `unique_devices = n_distinct(device)` counts how many unique devices were used in that precinct.
 
 Additional Examples of `group_by()` and `summarize()` can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20summarise%28Avg_Bill_Length%20%3D%20mean%28bill_length_mm%29%29&d=2025-04-18&lang=r&v=v1)
-
 
 #### Example 4: Filtering before summarizing
 
@@ -445,8 +447,8 @@ precinct_checkins
 :::::
 
 ::: keypoints
--   Use the `dplyr` package to manipulate data frames.
--   Use `select()` to choose variables from a data frame.
+-   Use the `dplyr` package to manipulate tibbles.
+-   Use `select()` to choose variables from a tibble.
 -   Use `filter()` to choose data based on values.
 -   Use `group_by()` and `summarize()` to work with subsets of data.
 -   Use `mutate()` to create new variables.
