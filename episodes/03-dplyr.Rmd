@@ -10,7 +10,6 @@ source("data/download_data.R")
 ```
 
 ::: instructor
-
 -   The main goal of this lesson is to introduce the dplyr package—a powerful tool for data manipulation in **`R`**.
 
 -   We will cover the basics such as selecting columns, filtering rows, chaining commands with pipes, creating new columns with mutate, and summarizing data by grouping.
@@ -46,7 +45,7 @@ source("data/download_data.R")
 
 **`dplyr`** is a package for making tabular data wrangling easier by using a limited set of functions that can be combined to extract and summarize insights from your data.
 
-As covered in "Starting with Data Episode, **`dplyr`** is also part of the tidyverse and can be loaded in R's memory when we call `library(tidyverse)`.
+As covered in "Starting with Data", **`dplyr`** is also part of the tidyverse and will be loaded in R's memory when we call `library(tidyverse)`.
 
 ::: callout
 ## Note
@@ -162,7 +161,7 @@ Additional Examples can be found [here](https://tidydatatutor.com/vis.html#code=
 
 ## Pipes
 
-When you want to both filter rows and choose columns at the same time, pipes can make your code much easier to read. Pipes let you write one step after another without saving many temporary objects or writing complex nested commands.
+When you want to apply multiple functions at the same time, pipes can make your code much easier to read. Pipes let you write one step after another without saving many temporary objects or writing complex nested commands.
 
 There are three ways to do this:
 
@@ -186,7 +185,7 @@ final_data <- select(
 )
 ```
 
--   Using pipes: **`pipes`** allow you to connect your commands in a simple, step-by-step way. In R, the most common pipe is **`%\>%`**. It takes the output from the left side and sends it to the function on the right side. You can think of it as the word “then.”
+-   Using pipes: **`pipes`** allow you to connect your commands in a simple, step-by-step way. In R, the most common pipe is **`%>%`**. It takes the output from the left side and sends it to the function on the right side. You can think of it as the word “then.”
 
 ```{r, purl=FALSE}
 final_data <- voting_data %>%
@@ -194,7 +193,12 @@ final_data <- voting_data %>%
   select(precinct, checkin_time)
 ```
 
-Pipes let you take the output of one function and send it directly to the next, which is useful when you need to do many things to the same data set. There are two Pipes in R: 1) `%>%` (called magrittr pipe; made available via the **`magrittr`** package, installed automatically with **`dplyr`**) or 2) `|>` (called the native pipe, included with base R). Both types behave similarly and in most cases in the same way. Therefore, the choice of which variant to choose is primarily a matter of taste.
+Pipes let you take the output of one function and send it directly to the next, which is useful when you need to do many things to the same data set. There are two pipes in R:
+
+1.  **`%>%`**: called the *magrittr* pipe — installed automatically with **`dplyr`**.
+2.  **`|>`**: called the *native* pipe — included with base **`R`**.
+
+Both types behave similarly and, in most cases, identically. Therefore, the choice of which variant to choose is primarily a matter of taste.
 
 ```{r, purl=FALSE}
 # the following example is run using magrittr pipe but the output will be same with the native pipe
