@@ -74,6 +74,10 @@ checkins <- sample_n(checkins, 500) %>%
     checkin_hour = hour(checkin_time),
     checkin_minute = minute(checkin_time)
   )
+
+# Prepare two datasets for plotting: full and sample
+checkins_full <- checkins  # full data (currently sampled)
+checkins_sample <- sample_n(checkins, 500)
 ```
 
 ## Visualization Options in R
@@ -345,9 +349,10 @@ This visualization can help us see if certain devices are used for check-ins at 
 We can use boxplots to visualize the distribution of check-in hours for each location:
 
 ```{r boxplot, fig.alt="Box plot of check-in hours by location.", purl=FALSE}
-sample_n(checkins, 500) %>%
+checkins %>%
+  filter(location %in% unique(location)[1:5]) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
-  geom_boxplot() +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
   labs(title = "Distribution of Check-in Hours by Location",
        x = "Location",
        y = "Hour of Check-in")
@@ -357,11 +362,12 @@ By adding points to a boxplot, we can have a better idea of the number of
 measurements and of their distribution:
 
 ```{r boxplot-with-jitter, fig.alt="Box plot of check-in hours by location with individual data points overlaid.", purl=FALSE}
-sample_n(checkins, 500) %>%
+checkins %>%
+  filter(location %in% unique(location)[1:5]) %>%
   ggplot(aes(x = location, y = checkin_hour)) +
   geom_boxplot(alpha = 0) +
   geom_jitter(alpha = 0.5,
-              color = "tomato",
+              color = "tomato", 
               width = 0.2,
               height = 0.2) +
   labs(title = "Distribution of Check-in Hours by Location",
@@ -443,17 +449,27 @@ sample_n(checkins, 500) %>%
 
 ## Barplots
 
-Barplots are also useful for visualizing categorical data. By default,
-`geom_bar` accepts a variable for x, and plots the number of instances each
+Barplots are great for visualizing categorical data, such as counting the number 
+of check-ins per device, per location, or per precinct.
+By default, `geom_bar` accepts a variable for x, and plots the number of instances each
 value of x (in this case, location) appears in the dataset.
 
 ```{r barplot-1, fig.alt="Bar plot showing counts of check-ins by location."}
-sample_n(checkins, 500) %>%
-  ggplot(aes(x = location)) +
+library(dplyr)
+
+top_devices <- checkins %>%
+  count(device) %>%
+  top_n(10, n) %>%
+  pull(device)
+
+checkins %>%
+  filter(device %in% top_devices) %>%
+  ggplot(aes(x = device, fill = device)) +
   geom_bar() +
-  labs(title = "Number of Check-ins by Location",
-       x = "Location",
-       y = "Count")
+  labs(title = "Top 10 Devices by Number of Check-ins",
+       x = "Device",
+       y = "Count") +
+  theme_classic()
 ```
 
 We can use the `fill` aesthetic for the `geom_bar()` geom to colour bars by
@@ -561,19 +577,19 @@ user to split one plot into multiple plots based on a factor included
 in the dataset. Let's use it to split our check-in counts by hour for each device:
 
 ```{r facet-fix, fig.alt="Fixed multi-panel line plot showing check-ins by hour for each device."}
-# Create hourly counts by device
-hourly_by_device <- sample_n(checkins, 500) %>%
-  count(checkin_hour, device)
+# Use the sampled data for faceting to ensure multiple points per location
+hourly_by_location <- checkins_sample %>%
+  count(checkin_hour, location)
 
-# Create the faceted plot with explicit group aesthetic
-hourly_by_device %>%
-  ggplot(aes(x = checkin_hour, y = n, group = device)) +  # Add group aesthetic
+hourly_by_location %>%
+  ggplot(aes(x = checkin_hour, y = n, group = 1)) +  # group=1 to connect across hours
   geom_line() +
   geom_point() +
-  labs(title = "Check-ins by Hour for Each Device",
+  labs(title = "Hourly Check-ins by Location",
        x = "Hour of Day",
        y = "Count") +
-  facet_wrap(~ device)
+  facet_wrap(~ location, scales = "free_y") +
+  theme_bw()
 ```
 
 Click the "Zoom" button in your RStudio plots pane to view a larger
@@ -603,7 +619,7 @@ We can also facet by both location and device to see patterns across both variab
 hourly_by_loc_device <- sample_n(checkins, 500) %>%
   count(checkin_hour, location, device)
 
-# Create the faceted plot - fixing the filter issue
+# Create the faceted plot
 hourly_by_loc_device %>%
   # First filter the data
   filter(device %in% c("DEVICE_001", "DEVICE_002")) %>%
@@ -621,118 +637,235 @@ hourly_by_loc_device %>%
 
 ## Visualizing Location Data with Maps
 
-When working with location data, it's often useful to visualize it on a map. While our dataset has anonymized locations, I'll demonstrate how to work with spatial data in ggplot2 using a hypothetical example.
+When working with geographic or location data, it's often useful to visualize it on a map. We'll demonstrate this using the Game of Thrones map data and voting statistics from the provided files.
 
-To work with maps in ggplot2, we typically use additional packages:
+To work with maps in ggplot2, we typically use additional packages. First, let's make sure we have all required dependencies:
 
-```{r load-map-packages, eval=FALSE}
+```{r install-map-packages, eval=TRUE}
+# Check if required packages are installed, if not install them
+if (!requireNamespace("units", quietly = TRUE)) install.packages("units")
+if (!requireNamespace("sf", quietly = TRUE)) install.packages("sf")
+if (!requireNamespace("viridis", quietly = TRUE)) install.packages("viridis")
+```
+
+Now we can load the packages:
+
+```{r load-map-packages, eval=TRUE}
 library(sf)      # For working with spatial data
-library(ggmap)   # For background maps
-library(maps)    # For map data
+library(viridis) # For color palettes
+library(dplyr)   # For data manipulation
 ```
 
-### Basic Map with Points
+### Basic Map with Game of Thrones Regions
 
-Let's create a hypothetical scenario where we have latitude and longitude for our locations. First, we'll create some fake coordinates for demonstration:
+First, we'll load the Game of Thrones GeoJSON data that contains region boundaries:
 
-```{r create-fake-coordinates, eval=FALSE}
-# Create a hypothetical dataset with coordinates
-#(This is just for demonstration - your real data would have actual coordinates)
-location_coords <- tibble(
-  location = c("LOCATION_001", "LOCATION_002", "LOCATION_003"),
-  lat = c(40.7128, 41.8781, 34.0522),
-  lon = c(-74.0060, -87.6298, -118.2437)
-)
+```{r load-got-map-data, eval=TRUE}
+# Get the current working directory for reference
+getwd()
 
-# Join with our check-in data to get coordinates
-checkins_with_coords <- sample_n(checkins, 500) %>%
-  left_join(location_coords, by = "location")
+# Define the correct path to your data files
+# Use the full path to the GeoJSON file
+geojson_path <- "data/polygons_example_GoT.geojson"
 
-# Count check-ins by location
-location_counts <- checkins_with_coords %>%
-  count(location, lat, lon)
+# Read the GeoJSON with region boundaries
+westeros_map <- st_read(geojson_path, quiet = TRUE)
+
+# Look at the structure of the data
+head(westeros_map$properties, 3)
 ```
 
-Now we can create a basic map with points representing each location:
+Now let's load the voting data:
 
-```{r basic-map, eval=FALSE}
-# Get base map (this requires a Google API key in practice)
-# usa_map <- get_map(location = "united states", zoom = 4, maptype = "terrain")
+```{r load-voting-data, eval=TRUE}
+# Use the full path to the CSV file
+csv_path <- "data/Voting_Example_GoT.csv"
 
-# For demonstration, we'll use a built-in US map
-us_map <- map_data("usa")
+# Read the CSV with voting percentages
+got_votes <- read.csv(csv_path)
 
-# Create the map
+# Look at the structure of the data
+head(got_votes)
+```
+
+### Mapping Voting Data by Region
+
+Let's visualize which regions favor Jon Snow vs. Daenerys Targaryen:
+
+```{r join-data-and-map, eval=TRUE}
+# Convert region ID to character for joining
+westeros_map$id <- as.character(westeros_map$properties$id)
+got_votes$id <- as.character(got_votes$id)
+
+# Join the map data with the voting data
+westeros_voting <- merge(westeros_map, got_votes, by="id", all.x=TRUE)
+
+# Create a basic map colored by Jon Snow support
 ggplot() +
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group),
-               fill = "white", color = "black") +
-  geom_point(data = location_counts,
-             aes(x = lon, y = lat, size = n, color = location),
-             alpha = 0.7) +
-  scale_size_continuous(name = "Number of Check-ins") +
-  coord_fixed(1.3) +
-  labs(title = "Check-in Locations and Frequencies",
-       x = "Longitude",
-       y = "Latitude") +
+  geom_sf(data = westeros_voting, aes(fill = Jon_Snow_pct)) +
+  scale_fill_viridis_c(name = "Jon Snow Support %", option = "plasma") +
+  labs(title = "Support for Jon Snow across Westeros",
+       caption = "Data source: Voting_Example_GoT.csv") +
   theme_minimal()
 ```
 
-### Working with Shapefile Data
+We can also visualize which regions prefer Daenerys:
 
-If you have precinct boundaries in a shapefile format, you can use the `sf` package to load and visualize them:
+```{r map-daenerys-support, eval=TRUE}
+# Create a map colored by Daenerys support
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = Daenerys_Targaryen_pct)) +
+  scale_fill_viridis_c(name = "Daenerys Support %", option = "viridis") +
+  labs(title = "Support for Daenerys Targaryen across Westeros",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  theme_minimal()
+```
 
-```{r sf-example, eval=FALSE}
-precincts <- st_read("data/shapefiles/RI_precincts.shp")
+### Creating a Map Showing the Dominant Candidate
 
-# Create synthetic precinct data for demonstration
-precincts <- tibble(
-  precinct = unique(checkins$precinct),
-  geometry = list(
-    # These would be actual polygon coordinates in real data
-    "POLYGON((-74.01 40.71, -74.02 40.71, -74.02 40.72, -74.01 40.72))"
+Let's create a map showing which candidate has majority support in each region:
+
+```{r dominant-candidate-map, eval=TRUE}
+# Add a column indicating the dominant candidate in each region
+westeros_voting$dominant <- ifelse(westeros_voting$Jon_Snow_pct > westeros_voting$Daenerys_Targaryen_pct, 
+                                  "Jon Snow", "Daenerys Targaryen")
+
+# Create a map showing the dominant candidate
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  scale_fill_manual(name = "Dominant Candidate",
+                   values = c("Jon Snow" = "steelblue", 
+                              "Daenerys Targaryen" = "firebrick")) +
+  labs(title = "Dominant Candidate by Region",
+       subtitle = "Who has majority support in each region of Westeros",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  theme_minimal()
+```
+
+### Adding Region Labels
+
+We can also add region labels to our map:
+
+```{r map-with-labels, eval=TRUE}
+# Convert to a simple feature object for centroids
+westeros_voting_sf <- st_as_sf(westeros_voting)
+
+# Calculate centroids for each region
+region_centroids <- st_centroid(westeros_voting_sf)
+region_centroids$coords <- st_coordinates(region_centroids)
+
+# Map with region names
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  geom_text(data = region_centroids, 
+            aes(x = coords.X, y = coords.Y, 
+                label = properties.Name),
+            size = 2.5, fontface = "bold") +
+  scale_fill_manual(name = "Dominant Candidate",
+                   values = c("Jon Snow" = "steelblue", 
+                              "Daenerys Targaryen" = "firebrick")) +
+  labs(title = "Political Map of Westeros",
+       subtitle = "Regional support for Jon Snow vs. Daenerys Targaryen",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  theme_minimal()
+```
+
+### Visualizing Margin of Victory
+
+We can visualize the strength of support (margin of victory) for each candidate:
+
+```{r margin-of-victory, eval=TRUE}
+# Calculate margin of victory (absolute difference)
+westeros_voting$margin <- abs(westeros_voting$Jon_Snow_pct - westeros_voting$Daenerys_Targaryen_pct)
+
+# Create margin of victory map
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = margin, color = dominant)) +
+  scale_fill_viridis_c(name = "Margin of Victory %") +
+  scale_color_manual(name = "Winning Candidate",
+                    values = c("Jon Snow" = "darkblue", 
+                               "Daenerys Targaryen" = "darkred")) +
+  labs(title = "Margin of Victory in Each Region",
+       subtitle = "Regions with stronger color indicate larger victory margins",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  theme_minimal()
+```
+
+### Customizing Map Themes
+
+Let's try two different themes to see which looks best for our Game of Thrones data:
+
+```{r got-map-theme1, eval=TRUE}
+# Theme 1: Dark theme for a more medieval look
+dark_got_theme <- theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "#2D2D2D", color = NA),
+    panel.background = element_rect(fill = "#2D2D2D", color = NA),
+    text = element_text(color = "#E0E0E0", family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    legend.background = element_rect(fill = "#2D2D2D", color = NA),
+    legend.text = element_text(color = "#E0E0E0"),
+    legend.title = element_text(color = "#E0E0E0", face = "bold"),
+    panel.grid = element_blank(),
+    axis.text = element_blank()
   )
-) %>%
-  st_as_sf(wkt = "geometry", crs = 4326)
 
-# Join with check-in counts
-precinct_counts <- sample_n(checkins, 500) %>%
-  count(precinct) %>%
-  left_join(precincts, by = "precinct")
-
-# Plot the map with filled precincts
+# Apply the dark theme
 ggplot() +
-  geom_sf(data = precinct_counts, aes(fill = n), color = "white") +
-  scale_fill_viridis_c(name = "Number of Check-ins") +
-  labs(title = "Check-in Counts by Precinct",
-       caption = "Darker colors indicate more check-ins") +
-  theme_minimal()
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  geom_text(data = region_centroids, 
+            aes(x = coords.X, y = coords.Y, 
+                label = properties.Name),
+            size = 2.5, fontface = "bold", color = "white") +
+  scale_fill_manual(name = "Dominant Candidate",
+                   values = c("Jon Snow" = "#3A7CA5", 
+                              "Daenerys Targaryen" = "#D16666")) +
+  labs(title = "Political Map of Westeros",
+       subtitle = "Regional support for Jon Snow vs. Daenerys Targaryen",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  dark_got_theme
 ```
 
-### Creating a Heatmap
+```{r got-map-theme2, eval=TRUE}
+# Theme 2: Parchment theme for an old-world map look
+parchment_got_theme <- theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "#F5E8C7", color = NA),
+    panel.background = element_rect(fill = "#F5E8C7", color = NA),
+    text = element_text(color = "#6B4226", family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    legend.background = element_rect(fill = "#F5E8C7", color = NA),
+    legend.text = element_text(color = "#6B4226"),
+    legend.title = element_text(color = "#6B4226", face = "bold"),
+    panel.grid = element_blank(),
+    axis.text = element_blank()
+  )
 
-Another useful visualization is a heatmap showing check-in density:
-
-```{r heatmap, eval=FALSE}
+# Apply the parchment theme
 ggplot() +
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group),
-               fill = "white", color = "black") +
-  stat_density_2d(data = checkins_with_coords,
-                  aes(x = lon, y = lat, fill = stat(density)),
-                  geom = "tile", contour = FALSE, alpha = 0.7) +
-  scale_fill_viridis_c() +
-  coord_fixed(1.3) +
-  labs(title = "Check-in Density Heatmap",
-       x = "Longitude",
-       y = "Latitude") +
-  theme_minimal()
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  geom_text(data = region_centroids, 
+            aes(x = coords.X, y = coords.Y, 
+                label = properties.Name),
+            size = 2.5, fontface = "bold", color = "#6B4226") +
+  scale_fill_manual(name = "Dominant Candidate",
+                   values = c("Jon Snow" = "#5C80BC", 
+                              "Daenerys Targaryen" = "#A63446")) +
+  labs(title = "Political Map of Westeros",
+       subtitle = "Regional support for Jon Snow vs. Daenerys Targaryen",
+       caption = "Data source: Voting_Example_GoT.csv") +
+  parchment_got_theme
 ```
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-Experiment with at least two different themes for your check-in visualizations. 
-Which do you like best for presenting your time-series data?
+Experiment with at least two different themes for your Game of Thrones map visualizations. 
+Which do you like best for presenting this regional data? Try creating your own custom theme 
+that fits the Game of Thrones aesthetic.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
