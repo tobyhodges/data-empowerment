@@ -56,6 +56,7 @@ Now let's load our check-in data:
 
 ```{r load-data, purl=FALSE}
 checkins <- read_csv("data/anonymized_data.csv")
+checkins_sample_wide <- read_csv("data/anonymized_data_2_sample.csv")
 ```
 
 Let's first examine our data structure:
@@ -275,9 +276,6 @@ hourly_data %>%
   )
 ```
 
-:::::::::::::::::::::::::
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ## Boxplot
 
@@ -512,18 +510,19 @@ user to split one plot into multiple plots based on a factor included
 in the dataset. Let's use it to split our check-in counts by hour for each device:
 
 ```{r facet-fix, fig.alt="Fixed multi-panel line plot showing check-ins by hour for each device."}
-# Use the sampled data for faceting to ensure multiple points per location
-hourly_by_location <- checkins_sample %>%
-  count(checkin_hour, location)
 
-hourly_by_location %>%
-  ggplot(aes(x = checkin_hour, y = n, group = 1)) +  # group=1 to connect across hours
-  geom_line() +
+# Count number of check-ins by hour and device
+hourly_by_device <- checkins_sample_wide %>%
+  count(hour, device)
+
+# Plot using faceting
+ggplot(hourly_by_device, aes(x = hour, y = n)) +
+  geom_line(group = 1) +  # One line per device; group = 1 if only one device
   geom_point() +
-  labs(title = "Hourly Check-ins by Location",
+  labs(title = "Hourly Check-ins by Device",
        x = "Hour of Day",
-       y = "Count") +
-  facet_wrap(~ location, scales = "free_y") +
+       y = "Number of Check-ins") +
+  facet_wrap(~ device, scales = "free_y") +  # Will show one facet per device
   theme_bw()
 ```
 
