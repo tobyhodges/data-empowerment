@@ -247,7 +247,7 @@ The syntax of a code chunk is:
 
 An R Markdown document knows that this text is not part of the report
 from the
-
+```` ``` ```` 
 that begins and ends the chunk. It also knows that the code inside of
 the chunk is written in R from the `r` inside of the curly braces
 (`{}`). After the `r`, you can add a name for the code chunk. Naming a
@@ -261,7 +261,7 @@ library(tidyverse)
 library(here)
 
 #reads in data and assigns it to the 'data' variable using 'here'
-data <- read_csv(here("episodes", "data", "anonymized_data.csv"))
+data <- read_csv(here("data", "anonymized_data.csv"))
 ```
 
 To load **tidyverse** and our `anonymized_data.csv` file, we will insert
@@ -452,7 +452,7 @@ total_2866 <- df %>%
 Now we can make an informative statement on the counts of each precinct,
 and include the total values as in-line R-code. For example:
 
-The total check-ins at precinct 2866 is
+The total check-ins at precinct 2866 is ``` ``r "r total_2866$total_checkins"`` ```
 
 becomes...
 
