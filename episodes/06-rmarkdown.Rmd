@@ -44,7 +44,7 @@ and HTML (.html).
 
 The benefit of a well-prepared R Markdown document is full
 reproducibility! This also means that, if you notice a data
-transcription error, or you are able to add more data to your analysis,
+transcription error or you are able to add more data to your analysis,
 you will be able to recompile the report without making any changes in
 the actual document.
 
@@ -113,8 +113,8 @@ Markdown is a popular markup language that allows you to add formatting
 elements to text, such as **bold**, *italics*, and `code`. However, the
 formatting will not be immediately visible in your markdown (.md)
 document, like you would see in a Word document. Rather, Markdown syntax
-applied to text within your file and converted into formatted elements
-upon output. Markdown is useful because it is lightweight, flexible, and
+applied to text within your file is converted into formatted elements
+*upon output*. Markdown is useful because it is lightweight, flexible, and
 platform independent.
 
 Some platforms provide a real time preview of the formatting, like
@@ -215,8 +215,8 @@ guide](https://www.markdownguide.org/basic-syntax).
 
 To render your document into HTML, click the **Knit** button at the top
 of the Source panel (top left), or use the keyboard shortcut
-<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> on Windows and Linux, and
-<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> on Mac. If you haven't
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> for Windows and Linux or
+<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> for Mac. If you haven't
 saved the document yet, you will be prompted to do so when you **Knit**
 for the first time.
 
@@ -226,16 +226,16 @@ for the first time.
 
 Next, we will add some R code from our previous data wrangling and
 visualization, which means we need to make sure **tidyverse** is loaded.
-However, it is no longer enough to load **tidyverse** from the console
--- when working with R Markdown, you much ensure any necessary packages
+However, it is no longer enough to just load **tidyverse** from the console
+-- when working with R Markdown, you must ensure any necessary packages
 are loaded within the document itself. The same applies to our data. To
 do so, we will need to create a 'code chunk' at the top of our document
 (below the YAML header).
 
-A code chunk can be inserted by clicking Code \> Insert Chunk, or by
+A code chunk can be inserted by clicking Code -\> Insert Chunk, or by
 using the keyboard shortcuts <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd>
-on Windows and Linux, and <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>
-on Mac.
+for Windows and Linux or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>
+for Mac.
 
 The syntax of a code chunk is:
 
@@ -256,11 +256,8 @@ naming chunks, each chunk name must be unique, and only contain
 alphanumeric characters and `-`.
 
 ```{r package-data, echo=FALSE, message=FALSE, purl=FALSE}
-#loads in the tidyverse and here packages
 library(tidyverse)
 library(here)
-
-#reads in data and assigns it to the 'data' variable using 'here'
 data <- read_csv(here("data", "anonymized_data.csv"))
 ```
 
@@ -271,8 +268,11 @@ after the code chunk name (`{r setup, include = FALSE}`).
 
 ````{verbatim, lang = "markdown"}
 ```{r setup, include = FALSE}
+#loads in the tidyverse and here packages
 library(tidyverse)
 library(here)
+
+#reads in data and assigns it to the 'data' variable using 'here'
 data <- read_csv(here("data", "anonymized_data.csv"))
 ```
 ````
@@ -292,24 +292,23 @@ your project.
 
 Next, we will re-create a table from the Data Wrangling episode which
 shows the total number of check-ins grouped by `precinct`. We can do
-this by creating a new code chunk and calling it 'anon-tbl'. Or, you can
-come up with something more creative (just remember to stick to the
+this by creating a new code chunk and calling it 'anon-tbl'. Alternatively, 
+you can come up with something more creative (just remember to stick to the
 naming rules).
 
-It isn't necessary to **Knit** your document every time you want to see
-the output. Instead you can run the code chunk with the green triangle
-in the top right corner of the the chunk, or with the keyboard
-shortcuts: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> on Windows and
-Linux, or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>C</kbd> on Mac.
+When writing code chunks, unlike text, it isn't necessary to **Knit** your 
+document every time you want to see the output. Instead you can run the code chunk 
+with the green triangle in the top right corner of the the chunk, or by using the 
+keyboard shortcuts <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> for Windows and
+Linux or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>C</kbd> for Mac.
 
 To make sure the table is formatted nicely in our output document, we
 will need to use the `kable()` function from the **knitr** package. The
 `kable()` function takes the output of your R code and knits it into a
 nice looking HTML table. You can also specify different aspects of the
-table, e.g. the column names, a caption, etc.
+table (i.e., the column names or the caption).
 
-Run the code chunk to make sure you get the desired output.
-
+Run the code chunk below to ensure you get the desired output:
 ```{r anon-tbl, message=FALSE, purl=FALSE}
 data %>%
   group_by(precinct) %>%
@@ -321,7 +320,7 @@ data %>%
 ```
 
 Many different R packages can be used to generate tables. Some of the
-more commonly used options are listed in the table below.
+more commonly used options are listed in the table below:
 
 | Name | Creator(s) | Description |
 |-----------------|-----------------|--------------------------------------|
@@ -331,9 +330,9 @@ more commonly used options are listed in the table below.
 | [flextable](https://davidgohel.github.io/flextable/) | [Gohel and Skintzos (2023)](https://cran.r-project.org/web/packages/flextable/index.html) | Assists in the creation and customization of tables for reporting and publication purposes. The following formats are supported: 'HTML', 'PDF', 'RTF', 'Microsoft Word', 'Microsoft PowerPoint' and R 'Grid Graphics'. 'R Markdown', 'Quarto', and the package 'officer' can be used to produce files with results. |
 | [gt](https://gt.rstudio.com/) | [Iannone et al. (2022)](https://cloud.r-project.org/web/packages/gt/index.html) | Builds display tables from tabular data. Within this package, tables are constructed using a set of cohesive table parts. Table values can be formatted using any of the included formatting functions. |
 | [huxtable](https://hughjonesd.github.io/huxtable/) | [Hugh-Jones (2022)](https://cran.r-project.org/web/packages/huxtable/index.html) | Creates styled tables for data presentation. These tables can be exported to HTML, LaTeX, RTF, 'Word', 'Excel', and 'PowerPoint'. Using this package, you can manipulate borders, size, position, captions, colors, text styles and number formatting. |
-| [pander](https://rapporter.github.io/pander/) | [Daróczi and Tsegelskyi (2022)](https://cran.r-project.org/web/packages/pander/index.html) | Includes functions that catch all messages, 'stdout' and other useful information while evaluating R code. It also provides helpers to return user-specified text elements (e.g., header, paragraph, table, image, lists etc.), or several types of R objects similarly automatically transformed to markdown format, in 'pandoc' markdown. |
+| [pander](https://rapporter.github.io/pander/) | [Daróczi and Tsegelskyi (2022)](https://cran.r-project.org/web/packages/pander/index.html) | Includes functions that catch all messages, 'stdout' and other useful information while evaluating R code. It also provides helpers to return user-specified text elements (e.g., header, paragraph, table, image, lists, etc.), or several types of R objects similarly automatically transformed to markdown format, in 'pandoc' markdown. |
 | [pixiedust](https://pixiedust.github.io/pixiedust/) | [Nutter and Kretch (2021)](https://cran.rstudio.com/web/packages/pixiedust/index.html) | Provides tidy data frames with a programming interface intended to be similar to 'ggplot2's system of layers, allowing fine-tuned control over each cell of the table. |
-| [reactable](https://glin.github.io/reactable/) | [Lin et al. (2023)](https://cran.r-project.org/web/packages/reactable/index.html) | Creates interactive data tables for R, based on the 'React Table' JavaScript library. Provides an HTML widget that can be used in 'R Markdown' or 'Quarto' documents, 'Shiny' applications, or viewed from an R console. |
+| [reactable](https://glin.github.io/reactable/) | [Lin et al. (2023)](https://cran.r-project.org/web/packages/reactable/index.html) | Creates interactive data tables for R based on the 'React Table' JavaScript library. Provides an HTML widget that can be used in 'R Markdown' or 'Quarto' documents, 'Shiny' applications, or viewed from an R console. |
 | [rhandsontable](https://jrowen.github.io/rhandsontable/) | [Owen et al. (2021)](https://cran.r-project.org/web/packages/rhandsontable/index.html) | Provides an R interface to the 'Handsontable' JavaScript library (a minimalist Excel-like data grid editor). |
 | [stargazer](https://github.com/cran/stargazer) | [Hlavac (2022)](https://cran.r-project.org/web/packages/stargazer/index.html) | Generates LaTeX code, HTML/CSS code and ASCII text for well-formatted tables that display regression analysis results from multiple models side-by-side, along with summary statistics. |
 | [tables](https://github.com/dmurdoch/tables) | [Murdoch (2022)](https://cran.r-project.org/web/packages/tables/index.html) | Computes and displays complex tables of summary statistics. Output can be in LaTeX, HTML, plain text, or an R matrix for further processing. |
@@ -343,12 +342,11 @@ more commonly used options are listed in the table below.
 
 ## Customizing Chunk Output
 
-Earlier, we mentioned using `include = FALSE` in a code chunk to prevent
-the code and output from printing in the knitted document. There are
-additional options available to customize how the code-chunks are
-presented in the output document. The options are entered in the code
-chunk after `chunk-name` and separated by commas, e.g.
-`{r chunk-name, eval = FALSE, echo = TRUE}`.
+Earlier, we mentioned using `include = FALSE` in a code chunk to prevent the code 
+and output from printing in the knitted document. There are additional options 
+available to customize how the code-chunks are presented in the output document. 
+The options are entered in the code chunk after `chunk-name` and separated by 
+commas, e.g. `{r chunk-name, eval = FALSE, echo = TRUE}`.
 
 | Option | Options | Output |
 |-------------|-------------|----------------------------------------------|
@@ -361,7 +359,6 @@ chunk after `chunk-name` and separated by commas, e.g.
 
 ::: callout
 ## Tip
-
 -   The default settings for the above chunk options are all `TRUE`.
 -   The default settings can be modified per chunk, or with
     `knitr::opts_chunk$set()` (i.e., entering
@@ -372,18 +369,16 @@ chunk after `chunk-name` and separated by commas, e.g.
 
 :::: challenge
 ## Exercise
+Play around with the different options in the chunk with the code for the table, 
+and re-**Knit** to see what each option does to the output.
 
-Play around with the different options in the chunk with the code for
-the table, and re-**Knit** to see what each option does to the output.
-
-What happens if you use `eval = FALSE` and `echo = FALSE`? What is the
-difference between this and `include = FALSE`?
+What happens if you use `eval = FALSE` and `echo = FALSE`? What is the difference 
+between this and `include = FALSE`?
 
 ::: solution
 ## Solution to Exercise
 
 Chunk 1:
-
 ````{verbatim, lang = "markdown"}
 ```{r eval = FALSE, echo = FALSE}
 data %>%
@@ -397,7 +392,6 @@ data %>%
 ````
 
 Chunk 2:
-
 ````{verbatim, lang = "markdown"}
 ```{r include = FALSE}
 data %>%
@@ -410,34 +404,34 @@ data %>%
 ```
 ````
 
--   `eval = FALSE` and `echo = FALSE` will neither run the code in the
-    chunk, nor show the code in the knitted document. The code chunk
-    essentially doesn't exist in the knitted document!
--   `include = FALSE` will not display the code nor the output, but it
-    *will* be ran, with the output stored for later use!
+-   `eval = FALSE` and `echo = FALSE` will neither run the code in the chunk, nor 
+    show the code in the knitted document. The code chunk essentially doesn't 
+    exist in the knitted document!
+-   `include = FALSE` will not display the code nor the output, but it *will* be 
+    ran, with the output stored for later use!
 :::
+
 ::::
 
 ## In-Line R Code
 
-Now we will use some in-line R code to present some descriptive
-statistics. To use in-line R-code, we use the same back-ticks that we
-used in the Markdown section, with an `r` to specify that we are
-generating R-code. The difference between in-line code and a code chunk
-is the number of back-ticks. In-line R code uses one back-tick
-(`` `r` ``), whereas code chunks use three back-ticks
+Now we will use some in-line R code to present some descriptive statistics. To 
+use in-line R-code, we use the same back-ticks that we used in the Markdown section, 
+with an `r` to specify that we are generating R-code. The difference between 
+in-line code and a code chunk is the number of back-ticks. In-line R code uses 
+one back-tick (`` `r` ``), whereas code chunks use three back-ticks 
 (```` ```r``` ````).
 
-For example, today's date is ``` ``r "r Sys.Date()"`` ```, will be
-rendered as: today's date is `r Sys.Date()`.\
-The code will display today's date in the output document (or,
-technically, the date the document was last knitted).
+For example, today's date is ``` ``r "r Sys.Date()"`` ```, will be rendered as: 
+today's date is `r Sys.Date()`. The code will display today's date in the output 
+document (or, technically, the date the document was last knitted).
 
-The best way to use in-line R code is by preparing the output in code
-chunks, minimizing the code needed to produce the output. Let's say
-we're interested in presenting the total check-ins for a specific
-precinct.
+The best way to use in-line R code is by preparing the output in code chunks, 
+minimizing the code needed to produce the output. For example, let's say we're 
+interested in presenting the total check-ins for a specific precinct.
 
+We can run the below code to create the total_2866 object, making future in-line 
+R code much easier to write:
 ```{r in-line-code, purl=FALSE}
 #create a summary data frame with the total check-ins per precinct
 df <- data %>%
@@ -464,15 +458,14 @@ make changes to the data set and/or code chunks.
 
 ## Plots
 
-Finally, we will be including a plot, so our document is a little more
-colorful and a little less boring to read!
+Finally, our last addition to our document will be a plot from the Data Visualization 
+lesson!
 
 :::: challenge
 ## Exercise
 
 Create a new code chunk for the plot, and copy the code from any of the
 plots we created in the previous episode to produce a plot in the chunk.
-We recommend one of the colorful plots! :)
 
 If you are feeling adventurous, you can also create a new plot using the
 `data` data frame.
@@ -535,13 +528,11 @@ data %>%
 
 ## Other Output Options
 
-To convert an R Markdown file to a PDF, Word Document, or other option,
-you can either click the little triangle next to the **Knit** button to
-get a drop-down menu or put `pdf_document` or `word_document` in the
-initial header of the file.
+To convert an R Markdown file to a PDF or Word Document, you can either click the 
+little triangle next to the **Knit** button to get a drop-down menu or put 
+`pdf_document` or `word_document` in the initial header of the file.
 
 For example, to output to a `word_document`:
-
 ```         
 ---
 title: "My Awesome Report"
@@ -569,11 +560,12 @@ are needed to produce the pdf document. For more information, visit the
 
 It is possible to insert citations into an R Markdown file using the
 editor toolbar. The editor toolbar includes commonly seen formatting
-buttons generally seen in text editors (e.g., bold and italic buttons).
-The toolbar is accessible by using the settings drop-down menu (next to
-the 'Knit' drop-down menu) to select 'Use Visual Editor', also
-accessible through the shortcut 'Crtl+Shift+F4'. From here, clicking
-'Insert' allows 'Citation' to be selected (shortcut: 'Crtl+Shift+F8').
+buttons generally seen in text editors (e.g., bold and italic buttons) 
+and is accessible by using the settings drop-down menu (next to
+the 'Knit' drop-down menu) to select 'Use Visual Editor'. You can also use the 
+keyboard shortcuts <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F4</kbd> for Windows and
+Linux or <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F4</kbd> for Mac. From here, clicking
+'Insert' allows 'Citation' to be selected.
 
 Using this menu, you can search various sources for citations and insert the 
 appropriate citation necessary. For example, searching
@@ -584,8 +576,8 @@ the [R Studio
 website](https://rstudio.github.io/visual-markdown-editing/) for more
 information. 
 
-Additionally, you can obtain citation information from relevant packages by using 
-`citation("package")`.
+Additionally, you can obtain citation information from relevant packages 
+by using `citation("package")`.
 :::
 
 ## Resources
