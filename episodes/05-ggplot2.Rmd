@@ -1323,7 +1323,7 @@ plot <- prop_device %>%
           panel.border = element_rect(color = "grey70")
         )
 
-ggsave("data/device_prop.png", plot, width = 10, height = 6, dpi = 300)
+ggsave("fig-output/device_prop.png", plot, width = 10, height = 6, dpi = 300)
 ```
 
 You can find the png generated in your data folder!
