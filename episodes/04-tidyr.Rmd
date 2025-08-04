@@ -54,9 +54,7 @@ library(here)
 
 Next, we will read in the Anonymized Data:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-anon_data <- read_csv(
-                here("data", "anonymized_data_2.csv"),
-             )
+anon_data <- read_csv(here("data", "anonymized_data_2.csv"))
 ```
 
 ## Reshaping with pivot\_wider() and pivot\_longer()
