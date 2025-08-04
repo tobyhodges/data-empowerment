@@ -58,7 +58,7 @@ In practice, sampling data before visualization is NOT required; however, due to
 the size of our original data set, using a smaller, sampled data set will allow 
 us to generate plots much faster!
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-data <- read_csv(here("episodes", "data", "anonymized_data_2_sample.csv"))
+data <- read_csv(here("data", "anonymized_data_2_sample.csv"))
 ```
 
 Before we continue, let's take a look at the structure and size of our data set 
@@ -960,7 +960,7 @@ library(sf)
 Next, let's load in the map data containing our map polygons:
 ```{r load-got-map-data, eval=TRUE}
 #read in data and save to object
-westeros_map <- st_read(here("episodes", "data", "polygons_example_GoT.geojson"), quiet = TRUE)
+westeros_map <- st_read(here("data", "polygons_example_GoT.geojson"), quiet = TRUE)
 
 #look at the data structure
 head(westeros_map, 3)
@@ -971,7 +971,7 @@ function. This function allows for two data frames to be linked based off of a
 specified variable (in our case, the "id"):
 ```{r load-voting-data, eval=TRUE}
 #read in data and save to object
-got_votes <- read_csv(here("episodes", "data", "voting_example_GoT.csv"))
+got_votes <- read_csv(here("data", "voting_example_GoT.csv"))
 
 #look at the data structure
 head(got_votes)
@@ -1164,7 +1164,7 @@ To complete this map, use the following steps:
 
 ```{r map-solution}
 #read in data
-checkin_data <- read_csv(here("episodes", "data", "avg_checkins.csv"))
+checkin_data <- read_csv(here("data", "avg_checkins.csv"))
 
 #link together map and checkin_data
 westeros_checkins <- merge(westeros_map, checkin_data, by.x = "id", by.y = "precinct")
