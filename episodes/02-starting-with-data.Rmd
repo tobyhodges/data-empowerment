@@ -121,14 +121,15 @@ import tabular data using `read_csv()`.
 ## Introduction to the Anonymized Dataset
 
 The Anonymized Dataset is an example dataset that is based on the 2018 election. 
-Each row in the dataset represents one ballot case, and includes an ID, arrival
-time, location, precinct, and machine.
+Each row in the dataset represents one ballot case, and includes an ID, check-in 
+length, arrival time, location, precinct, and machine.
 
 The following is a visual representation of the dataset's columns:
 
 | column\_name         | description                                                                                                                      | 
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | checkin\_id          | Provides a unique key/ID for each ballot instance.                                                                               | 
+| checkin\_length      | How long it took the person submitting the ballot to check-in to the polling location.                                           | 
 | checkin\_time        | The arrival time of the person submitting the ballot, includes both the date and time.                                           | 
 | location             | Anonymized ID for the location of the ballot box.                                                                                | 
 | precinct             | Anonymized ID for the precinct that the ballot box belongs to.                                                                   | 
@@ -187,9 +188,7 @@ library(tidyverse)
 library(here)
 
 #reads in data and assigns it to the 'data' variable using 'here'
-data <- read_csv(
-        here("data", "anonymized_data.csv")
-        )
+data <- read_csv(here("data", "anonymized_data.csv"))
 ```
 
 In the above code, we notice the `here()` function takes folder and file names
@@ -259,7 +258,6 @@ the data is read using `read_csv()`, it is stored in an object of class
 ```{r, results="hold", purl=FALSE}
 class(data)
 ```
-
 As a `tibble`, the type of data included in each column is listed in an
 abbreviated fashion below the column names. For instance, here `checkin_id` is a 
 column of characters (`<chr>`),`precinct` is a column of floating point numbers 
@@ -636,7 +634,7 @@ plot(ballotData)
 
 Recall our coverage of dates in "Intro to R".  A best practice for dealing with 
 date data is to ensure that each component of your date is available as a 
-separate variable. In our dataset, we have a column `checkin_time` which 
+separate variable. In our data set, we have a column `checkin_time` which 
 contains information about the year, month, day, hour, minute, and second that 
 the person that submitted the ballot arrived in the building. Let's convert 
 those dates into six separate columns.
@@ -645,7 +643,7 @@ those dates into six separate columns.
 str(data)
 ```
 
-We are going to use the package **`lubridate`**, , which is included in the 
+We are going to use the package **`lubridate`**, which is included in the 
 **`tidyverse`** installation and should be loaded by default. However, if we 
 deal with older versions of tidyverse (2022 and earlier), we can manually load it 
 by typing `library(lubridate)`.

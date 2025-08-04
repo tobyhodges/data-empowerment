@@ -5,17 +5,13 @@ exercises: 30
 source: Rmd
 ---
 
-```{r setup, include=FALSE}
-source("data/download_data.R")
-```
-
 :::: instructor
 
-- The main goal is to introduce users to the various objects in R, from atomic types
-  to creating your own objects.
-- While this epsiode is foundational, be careful not to get caught in the weeds as the
-  variety of types and operations can be overwhelming for new users, especially before
-  they understand how this fits into their own "workflow."
+- The main goal is to introduce users to the various objects in R, from atomic 
+  types to creating your own objects.
+- While this episode is foundational, be careful not to get caught in the weeds 
+  as the variety of types and operations can be overwhelming for new users, especially 
+  before they understand how this fits into their own "workflow."
 
 ::::::::::::
 
@@ -47,7 +43,7 @@ source("data/download_data.R")
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-## Creating objects in R
+## Creating Objects in R
 
 You can get output from R simply by typing math in the console:
 
@@ -108,7 +104,7 @@ for issues in the styling of your code.
 
 :::::::::::::::::::::::::::::::::::::::::  callout
 
-## Objects vs. variables
+## Objects vs. Variables
 
 The naming of objects in `R` is somehow related to `variables` in many other
 programming languages. In many programming languages, a variable has three aspects: a name, a memory location, and the current value stored in this location. `R` abstracts from modifiable memory locations. In `R` we only have objects which cn be named.
@@ -230,7 +226,7 @@ r_area
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-### Functions and their arguments
+### Functions and Their Arguments
 
 Functions are "canned scripts" that automate more complicated sets of commands
 including operations assignments, etc. Many functions are predefined, or can be
@@ -339,11 +335,7 @@ round(1234.56, digits = -1) # Negative digits round left of the decimal: 1230
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
-## Vectors and data types
-
-```{r, echo=FALSE, purl=TRUE}
-### Vectors and data types
-```
+## Vectors and Data Types
 
 A vector is the most common and basic data type in R, and is pretty much
 the workhorse of R. A vector is composed by a series of values, which can be
@@ -440,7 +432,7 @@ R will always try to find a common data type that doesn't lose information. Typi
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
-## Exercise: Coercion in vectors
+## Exercise
 
 1. Predict the resulting data type for this vector: `c(1.1, 2L, TRUE, "a")`
 
@@ -462,6 +454,7 @@ R will always try to find a common data type that doesn't lose information. Typi
 mixed <- c(5, FALSE, "data")
 typeof(mixed)
 ```
+
 It has type "character" because R coerces all elements to the most flexible data type that includes all values.
 
 :::::::::::::::::::::::::
@@ -501,7 +494,7 @@ typeof(checkin_times)
 class(checkin_times)
 ```
 
-### Example: Bad Usage of Dates via Strings
+#### Example: Bad Usage of Dates via Strings
 
 If dates are stored as strings, computations can lead to incorrect results. For example:
 
@@ -524,7 +517,7 @@ time_difference # Correct computation in seconds
 
 Using proper date types ensures that computations like time differences are accurate and meaningful.
 
-### Example: Leap Year Scenario
+#### Example: Leap Year Scenario
 
 A leap year scenario highlights the importance of using proper date types. Consider the following example:
 
@@ -557,7 +550,7 @@ difference_correct # Correctly computes 2 days, accounting for February 29 in th
 
 Using proper date types ensures that leap years and other calendar-specific rules are handled correctly, making computations accurate and reliable.
 
-### Key Differences Between `Date` and `POSIXct`
+#### Key Differences Between `Date` and `POSIXct`
 
 - **`Date`**:
   - Represents dates without time.
@@ -614,8 +607,8 @@ Another common way of subsetting is by using a logical vector. `TRUE` will
 select the element with the same index, while `FALSE` will not:
 
 ```{r, results="show", purl=FALSE}
-precincts <- c(2866, 2866, 2867, 2866)
-precincts[c(TRUE, FALSE, TRUE, TRUE)]
+checkin_lengths <- c(64, 74, 36, 287)
+checkin_lengths[c(TRUE, FALSE, TRUE, TRUE)]
 ```
 
 Typically, these logical vectors are not typed by hand, but are the output of
@@ -623,17 +616,17 @@ other functions or logical tests. For instance, if you wanted to select only the
 values greater than 2866:
 
 ```{r, results="show", purl=FALSE}
-precincts > 2866    # will return logicals with TRUE for the indices that meet the condition
+checkin_lengths > 60    # will return logicals with TRUE for the indices that meet the condition
 ## so we can use this to select only the values greater than 2866
-precincts[precincts > 2866]
+checkin_lengths[checkin_lengths > 60]
 ```
 
 You can combine multiple tests using `&` (both conditions are true, AND) or `|`
 (at least one of the conditions is true, OR):
 
 ```{r, results="show", purl=FALSE}
-precincts[precincts < 2866 | precincts > 2866]
-precincts[precincts >= 2866 & precincts <= 2867]
+checkin_lengths[checkin_lengths < 60 | checkin_lengths > 80]
+checkin_lengths[checkin_lengths >= 60 & checkin_lengths <= 80]
 ```
 
 Here, `<` stands for "less than", `>` for "greater than", `>=` for "greater than
@@ -668,44 +661,43 @@ devices %in% c("DEVICE_001", "DEVICE_002", "DEVICE_005")
 devices[devices %in% c("DEVICE_001", "DEVICE_002", "DEVICE_005")]
 ```
 
-## Missing data
+## Missing Data
 
-As R was designed to analyze datasets, it includes the concept of missing data
+As R was designed to analyze data sets, it includes the concept of missing data
 (which is uncommon in other programming languages). Missing data are represented
 in vectors as `NA`.
 
 When doing operations on numbers, most functions will return `NA` if the data
 you are working with include missing values. This feature
 makes it harder to overlook the cases where you are dealing with missing data.
-You can add the argument `na.rm=TRUE` to calculate the result while ignoring
+You can add the argument `na.rm = TRUE` to calculate the result while ignoring
 the missing values.
 
 ```{r, purl=FALSE}
-rooms <- c(2, 1, 1, NA, 7)
-mean(rooms)
-max(rooms)
-mean(rooms, na.rm = TRUE)
-max(rooms, na.rm = TRUE)
+checkin_lengths <- c(64, 74, NA, 287)
+mean(checkin_lengths)
+max(checkin_lengths)
+mean(checkin_lengths, na.rm = TRUE)
+max(checkin_lengths, na.rm = TRUE)
 ```
 
 If your data include missing values, you may want to become familiar with the
 functions `is.na()`, `na.omit()`, and `complete.cases()`. See below for
-examples.
-
+examples:
 ```{r, purl=FALSE}
 ## Extract those elements which are not missing values.
 ## The ! character is also called the NOT operator
-rooms[!is.na(rooms)]
+checkin_lengths[!is.na(checkin_lengths)]
 
 ## Count the number of missing values.
 ## The output of is.na() is a logical vector (TRUE/FALSE equivalent to 1/0) so the sum() function here is effectively counting
-sum(is.na(rooms))
+sum(is.na(checkin_lengths))
 
 ## Returns the object with incomplete cases removed. The returned object is an atomic vector of type `"numeric"` (or `"double"`).
-na.omit(rooms)
+na.omit(checkin_lengths)
 
 ## Extract those elements which are complete cases. The returned object is an atomic vector of type `"numeric"` (or `"double"`).
-rooms[complete.cases(rooms)]
+checkin_lengths[complete.cases(checkin_lengths)]
 ```
 
 Recall that you can use the `typeof()` function to find the type of your atomic vector.
@@ -714,39 +706,35 @@ Recall that you can use the `typeof()` function to find the type of your atomic 
 
 ## Exercise
 
-1. Using this vector of rooms, create a new vector with the NAs removed.
+1. Using this vector of check-in lengths, create a new vector with the NAs removed.
 
 ```r
-rooms <- c(1, 2, 1, 1, NA, 3, 1, 3, 2, 1, 1, 8, 3, 1, NA, 1)
+checkin_lengths <- c(54, 21, 74, 65, NA, 72, 21, 16, 46, 58, 43, 61, 39, 19, NA, 24)
 ```
 
-2. Use the function `median()` to calculate the median of the `rooms` vector.
+2. Use the function `median()` to calculate the median of the `checkin_lengths` vector.
 
-3. Use R to figure out how many households in the set use more than 2 rooms for sleeping.
+3. Use R to figure out how many check-ins took longer than 55 seconds.
 
 :::::::::::::::  solution
 
 ## Solution
 
 ```{r, answer=TRUE}
-rooms <- c(1, 2, 1, 1, NA, 3, 1, 3, 2, 1, 1, 8, 3, 1, NA, 1)
-rooms_no_na <- rooms[!is.na(rooms)]
+checkin_lengths <- c(54, 21, 74, 65, NA, 72, 21, 16, 46, 58, 43, 61, 39, 19, NA, 24)
+checkin_lengths_no_na <- checkin_lengths[!is.na(checkin_lengths)]
 # or
-rooms_no_na <- na.omit(rooms)
+checkin_lengths_no_na <- na.omit(checkin_lengths)
 # 2.
-median(rooms, na.rm = TRUE)
+median(checkin_lengths, na.rm = TRUE)
 # 3.
-rooms_above_2 <- rooms_no_na[rooms_no_na > 2]
-length(rooms_above_2)
+checkin_lengths_above_55 <- rooms_no_na[checkin_lengths_no_na > 55]
+length(checkin_lengths_above_55)
 ```
 
 :::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-Now that we have learned how to write scripts, and the basics of R's data
-structures, we are ready to start working with the Anonymized Dataset we have been
-using in the other lessons, and learn about data frames.
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
 
