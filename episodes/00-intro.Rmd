@@ -368,6 +368,17 @@ download.file(
   )
 ```
 
+#### Check-In JSON Data:
+
+You can either copy the data from this [GitHub link](https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/checkin_snippet.json)
+and paste it into a file called `checkin_snippet.json` in the `data/` directory or
+copy-paste the below code chunk into your terminal:
+```{r anonymized_data, eval=FALSE}
+download.file(
+  "https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/checkin_snippet.json",
+  "data/checkin_snippet.json", mode = "wb"
+  )
+```
 
 ## Interacting with R
 
@@ -501,12 +512,12 @@ was written to the console before the start of the installation messages.
 
 You could also have installed the **`tidyverse`** packages by running this command directly at the R terminal.
 
-We will be using additional packages to manage paths, plots, and shape files. 
-We will discuss these in more detail in a later episode, but we will install them 
-now in the console:
+We will be using additional packages to manage paths, plots, json files, and shape 
+files. We will discuss these in more detail in a later episode, but we will install 
+them now in the console:
 
 ```{r, eval=FALSE}
-install.packages("here", "lattice", "sf")
+install.packages("here", "lattice", "sf", "jsonlite")
 ```
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
