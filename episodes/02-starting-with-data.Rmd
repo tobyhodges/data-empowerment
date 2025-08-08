@@ -11,8 +11,8 @@ The main goals for this lessons are:
 
 - Ensure learners are comfortable with working with data frames and tibbles, and
   can use the bracket notation to select slices/columns.
-- Make sure learners can import data into R and convert data into tibbles
-  for analysis purposes.
+- Make sure learners can import data into R and convert data into tibbles for 
+  analysis purposes.
 - Expose learners to factors. Their behavior is not necessarily intuitive, so it 
   is important that they are guided through it the first time they are
   exposed to it. The content of the lesson should be enough for learners to
@@ -34,8 +34,8 @@ The main goals for this lessons are:
 - Describe the difference between a factor and a string.
 - Convert between strings and factors.
 - Reorder and rename factors.
-- Change how character strings are handled in a tibble..
-- Examine and change date formats within a dataset.
+- Change how character strings are handled in a tibble.
+- Examine and change date formats within a data set.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -43,18 +43,18 @@ The main goals for this lessons are:
 
 - What is an R package?
 - What is a data.frame?
-- What is a tibble, and how is it different from a data.frame?
+- What is a tibble, and how is it different from a data frame?
 - How can I read a complete csv file into R?
-- How can I get basic summary information about my dataset?
-- How can I change the way R treats strings in my dataset?
+- How can I get basic summary information about my data set?
+- How can I change the way R treats strings in my data set?
 - Why would I want strings to be treated differently?
-- How are dates represented in datasets and how can I change the format?
+- How are dates represented in data sets and how can I change the format?
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ## What is an R package?
 
-An R package is a collection of functions and (occasionally) datasets that
+An R package is a collection of functions and (occasionally) data sets that
 extend the functionality of R. Throughout these lessons, we will primarily be 
 using the **`tidyverse`**, which is a collection of R packages designed to make 
 data science easier!
@@ -118,17 +118,18 @@ functions `read_csv()` or `read_table()`; in other words, when importing
 spreadsheets from your hard drive (or the web). We will now demonstrate how to
 import tabular data using `read_csv()`.
 
-## Introduction to the Anonymized Dataset
+## Introduction to the Check-In Dataset
 
-The Anonymized Dataset is an example dataset that is based on the 2018 election. 
-Each row in the dataset represents one ballot case, and includes an ID, arrival
-time, location, precinct, and machine.
+The Check-In Dataset is an example data set that is based on the 2018 election. 
+Each row in the data set represents one ballot case, and includes an ID, check-in 
+length, arrival time, location, precinct, and machine.
 
-The following is a visual representation of the dataset's columns:
+The following is a visual representation of the data set's columns:
 
 | column\_name         | description                                                                                                                      | 
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | checkin\_id          | Provides a unique key/ID for each ballot instance.                                                                               | 
+| checkin\_length      | How long it took the person submitting the ballot to check-in to the polling location.                                           | 
 | checkin\_time        | The arrival time of the person submitting the ballot, includes both the date and time.                                           | 
 | location             | Anonymized ID for the location of the ballot box.                                                                                | 
 | precinct             | Anonymized ID for the precinct that the ballot box belongs to.                                                                   | 
@@ -187,13 +188,11 @@ library(tidyverse)
 library(here)
 
 #reads in data and assigns it to the 'data' variable using 'here'
-data <- read_csv(
-        here("data", "anonymized_data.csv")
-        )
+data <- read_csv(here("data", "checkin_data.csv"))
 ```
 
 In the above code, we notice the `here()` function takes folder and file names
-as inputs (e.g., `"data"`, `"anonymized_data.csv"`), each enclosed in quotations
+as inputs (e.g., `"data"`, `"checkin_data.csv"`), each enclosed in quotations
 (`""`) and separated by a comma. The `here()` will accept as many names as are
 necessary to navigate to a particular file.
 
@@ -204,8 +203,8 @@ use `here("info", "data.csv")`.
 
 The `here()` function can accept the folder and file names in an alternate format,
 using a slash ("/") rather than commas to separate the names. The two methods are
-equivalent, so that `here("data", "anonymized_data.csv")` and
-`here("data/anonymized_data.csv")` produce the same result. (The forward slash 
+equivalent, so that `here("data", "checkin_data.csv")` and
+`here("data/checkin_data.csv")` produce the same result. (The forward slash 
 is used on all operating systems; backslashes are never used.)
 
 If you were to type in the code above, it is likely that the `read.csv()`
@@ -214,19 +213,22 @@ function is different from the `read_csv()` function, as it is included in the
 "base" packages that come pre-installed with R. Overall, `read.csv()` behaves
 similar to `read_csv()`, with a few notable differences. First, `read.csv()`
 coerces column names with spaces and/or special characters to different names
-(e.g. `interview date` becomes `interview.date`). Second, `read.csv()`
-stores data as a `data.frame`, where `read_csv()` stores data as a different 
-kind of data frame called a `tibble`. We prefer tibbles because they have nice 
-printing properties among other desirable qualities. Read more about tibbles
-[here](https://tibble.tidyverse.org/).
+(e.g. `interview date` becomes `interview.date`). 
 
-The second statement in the code above creates a data frame but doesn't output
-any data because, as you might recall, assignments (`<-`) don't display
-anything. (Note, however, that `read_csv` may show informational text about the 
-data frame that is created.) If we want to check that our data has been loaded, 
-we can see the contents of the data frame by typing its name: `interviews` in 
-the console.
+Second, `read.csv()` stores data as a `data.frame`, where `read_csv()` stores data 
+as a different kind of data frame called a `tibble`. A tibble is an extension of 
+`R` data frames used by the **`tidyverse`**. We prefer tibbles because they have 
+nice printing properties among other desirable qualities. You can read more about 
+tibbles [here](https://tibble.tidyverse.org/).
 
+
+Additionally, the `read_csv()` statement in the code above creates a tibble but 
+doesn't output any data because, as you might recall, assignments (`<-`) don't 
+display anything. Note, however, that `read_csv` may show informational text about the 
+data frame that is created. 
+
+If we want to check that our tibble has been loaded, we can see the contents of the 
+data by typing its name: `data` in the console:
 ```{r, results="hold", purl=FALSE}
 data
 ## Try also
@@ -251,11 +253,8 @@ of your file.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-Note that `read_csv()` actually loads the data as a tibble.
-A tibble is an extension of `R` data frames used by the **`tidyverse`**. When
-the data is read using `read_csv()`, it is stored in an object of class
-`tbl_df`, `tbl`,  and `data.frame`. You can see the class of an object with
-
+When the data is read using `read_csv()`, it is stored in an object of class
+`tbl_df`, `tbl`,  and `data.frame`. You can see the class of an object using:
 ```{r, results="hold", purl=FALSE}
 class(data)
 ```
@@ -382,7 +381,7 @@ data[["location"]]
 data$location
 ```
 
-In RStudio, you can use the **`autocompletion feature`** to get the full and 
+In RStudio, you can use the **`auto-completion feature`** to get the full and 
 correct names of the columns.
 
 :::::::::::::::::::::::::::::::::::::::  challenge
@@ -390,7 +389,7 @@ correct names of the columns.
 ## Exercise
 
 1. Create a tibble (`data_100`) containing only the data in
-   row 100 of the `data` dataset.
+   row 100 of the `data` data set.
 
 Now, continue using `data` for each of the following activities: 
 
@@ -402,14 +401,14 @@ Now, continue using `data` for each of the following activities:
 - Pull out that last row using `nrow()` instead of the row number.
 - Create a new tibble (`data_last`) from that last row.
 
-3. Using the number of rows in the Anonymized Dataset that you found in
-   question 2, extract the rows that are in the middle of the dataset. Store
+3. Using the number of rows in the Check-In Dataset that you found in
+   question 2, extract the rows that are in the middle of the data set. Store
    the content of these middle rows in an object named `data_middle`.
    (hint: the middle two items of a set of 4 would be 2 + 3, or visually, 
    [][X][X][])
 
 4. Combine `nrow()` with the `-` notation above to reproduce the behavior of
-   `head(data)`, keeping just the first through 6th rows of the Anonymized
+   `head(data)`, keeping just the first through 6th rows of the Check-In
    Dataset.
  
 :::::::::::::::  solution
@@ -636,7 +635,7 @@ plot(ballotData)
 
 Recall our coverage of dates in "Intro to R".  A best practice for dealing with 
 date data is to ensure that each component of your date is available as a 
-separate variable. In our dataset, we have a column `checkin_time` which 
+separate variable. In our data set, we have a column `checkin_time` which 
 contains information about the year, month, day, hour, minute, and second that 
 the person that submitted the ballot arrived in the building. Let's convert 
 those dates into six separate columns.
@@ -645,7 +644,7 @@ those dates into six separate columns.
 str(data)
 ```
 
-We are going to use the package **`lubridate`**, , which is included in the 
+We are going to use the package **`lubridate`**, which is included in the 
 **`tidyverse`** installation and should be loaded by default. However, if we 
 deal with older versions of tidyverse (2022 and earlier), we can manually load it 
 by typing `library(lubridate)`.
@@ -718,17 +717,17 @@ but either function can be used.
 
 ## Outputting Data
 
-Occasionally, after editing a dataset within RStudio, you may want to output the
-updated dataset to a CSV file. This would allow you to open the updated information
+Occasionally, after editing a data set within RStudio, you may want to output the
+updated data set to a CSV file. This would allow you to open the updated information
 in Excel, Google Sheets, or a different RMarkdown file!
 
 To output a file to CSV, we will be using the `write_csv()` function from the 
 **`readr`** package. Below, we will be outputting our updated data with our new
-date and time columns as `"anonymized_data_2.csv"`:
+date and time columns as `"checkin_data_2.csv"`:
 
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-#takes the data tibble and outputs it as a csv file
-write_csv(data, "data/anonymized_data_2.csv")
+#takes the tibble and outputs it as a csv file
+write_csv(data, "data/checkin_data_2.csv")
 ```
 
 When choosing the name for the new file, ensure there are no files with the same
@@ -747,7 +746,7 @@ before the file name!
 
 If you want to output your new csv to a different file outside of the working 
 directory, you can use an entire file path (ex. 
-`"C:/Users/name/Documents/anonymized_data_2.csv"`) to specify exactly where you 
+`"C:/Users/name/Documents/checkin_data_2.csv"`) to specify exactly where you 
 want the file to be saved.
 
 Note: similarly to reading in CSV files, **`readr`** has a alternate version of
@@ -760,7 +759,7 @@ semicolons as field delimiters.
 - Access rows and columns in a tibble in R.
 - Use factors to represent categorical data in R.
 - Use datetime to represent data in R.
-- Output an updated dataset to CSV in R.
+- Output an updated data set to CSV in R.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
