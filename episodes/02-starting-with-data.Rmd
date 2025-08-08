@@ -9,9 +9,9 @@ source: Rmd
 
 The main goals for this lessons are:
 
-- Ensure learners are comfortable with working with data frames, and
+- Ensure learners are comfortable with working with data frames and tibbles, and
   can use the bracket notation to select slices/columns.
-- Make sure learners can import data into R and convert data into data frames
+- Make sure learners can import data into R and convert data into tibbles
   for analysis purposes.
 - Expose learners to factors. Their behavior is not necessarily intuitive, so it 
   is important that they are guided through it the first time they are
@@ -27,14 +27,15 @@ The main goals for this lessons are:
 
 - Understand what an R package is.
 - Describe what a data frame is.
-- Load external data from a .csv file into a data frame.
-- Summarize the contents of a data frame.
-- Subset values from data frames.
+- Describe what a tibble is.
+- Load external data from a .csv file into a tibble.
+- Summarize the contents of a tibble.
+- Subset values from a tibble.
 - Describe the difference between a factor and a string.
 - Convert between strings and factors.
 - Reorder and rename factors.
-- Change how character strings are handled in a data frame.
-- Examine and change date formats.
+- Change how character strings are handled in a tibble..
+- Examine and change date formats within a dataset.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -42,6 +43,7 @@ The main goals for this lessons are:
 
 - What is an R package?
 - What is a data.frame?
+- What is a tibble, and how is it different from a data.frame?
 - How can I read a complete csv file into R?
 - How can I get basic summary information about my dataset?
 - How can I change the way R treats strings in my dataset?
@@ -55,7 +57,7 @@ The main goals for this lessons are:
 An R package is a collection of functions and (occasionally) datasets that
 extend the functionality of R. Throughout these lessons, we will primarily be 
 using the **`tidyverse`**, which is a collection of R packages designed to make 
-datascience easier!
+data science easier!
 
 When installing and loading **`tidyverse`**, the following are all of the 
 packages that are installed/loaded as part of the collection:
@@ -132,7 +134,7 @@ The following is a visual representation of the dataset's columns:
 | precinct             | Anonymized ID for the precinct that the ballot box belongs to.                                                                   | 
 | device               | Anonymized ID for each ballot box.                                                                                               | 
 
-## Importing data
+## Importing Data
 
 You are going to load the data in R's memory using the function `read_csv()`.
 This is from the **`readr`** package, which (as you may remember) is part of 
@@ -264,13 +266,13 @@ column of characters (`<chr>`),`precinct` is a column of floating point numbers
 (abbreviated `<dbl>` for the word 'double'), and the `checkin_time` is a column 
 in the "date and time" format (`<dttm>` or `<S3: POSIXct>`).
 
-## Inspecting data frames
+## Inspecting Tibbles
 
 When calling a `tbl_df` object (like `data` here), there is already a lot
-of information about our data frame being displayed such as the number of rows,
-the number of columns, the names of the columns, and as we just saw the class of
+of information about our tibble being displayed, such as the number of rows,
+the number of columns, the names of the columns, and, as we just saw, the class of
 data stored in each column. However, there are functions to extract this
-information from data frames.  Here is a non-exhaustive list of some of these
+information from tibbles.  Here is a non-exhaustive list of some of these
 functions. Let's try them out!
 
 Size:
@@ -305,10 +307,10 @@ Summary:
 Note: most of these functions are "generic." They can be used on other types of
 objects besides data frames or tibbles.
 
-## Subsetting data frames
+## Subsetting Tibbles
 
-Our `data` data frame has rows and columns (it has 2 dimensions).
-In practice, we may not need the entire data frame; for instance, we may only
+Our `data` tibble has rows and columns (it has 2 dimensions).
+In practice, we may not need the entire tibble; for instance, we may only
 be interested in a subset of the observations (the rows) or a particular set
 of variables (the columns). If we want to access some specific data from it, we 
 need to specify the "coordinates" (i.e., indices) we want from it. Row numbers 
@@ -353,7 +355,7 @@ head_data <- data[1:6, ]
 `:` is a special function that creates numeric vectors of integers in increasing
 or decreasing order, test `1:10` and `10:1` for instance.
 
-You can also exclude certain indices of a data frame using the "`-`" sign:
+You can also exclude certain indices of a tibble using the "`-`" sign:
 
 ```{r, purl=FALSE}
 #retrieves the whole tibble (minus the first column)
@@ -523,7 +525,7 @@ ballot_type_ordered <- factor(ballot_type,
 ballot_type_ordered #now ordered
 ```
 
-### Converting factors
+### Converting Factors
 
 If you need to convert a factor to a character vector, you use
 `as.character(x)`.
@@ -556,7 +558,7 @@ Notice that in the recommended `levels()` approach, three important steps occur:
 - We then access these numeric values using the underlying integers of the
   vector `year_fct` inside the square brackets
 
-### Renaming factors
+### Renaming Factors
 
 When your data is stored as a factor, you can use the `plot()` function to get a
 quick glance at the number of observations represented by each factor level.
@@ -635,7 +637,7 @@ plot(ballotData)
 Recall our coverage of dates in "Intro to R".  A best practice for dealing with 
 date data is to ensure that each component of your date is available as a 
 separate variable. In our dataset, we have a column `checkin_time` which 
-contains information about theyear, month, day, hour, minute, and second that 
+contains information about the year, month, day, hour, minute, and second that 
 the person that submitted the ballot arrived in the building. Let's convert 
 those dates into six separate columns.
 
@@ -667,7 +669,7 @@ str(times)
 When we imported the data in R, `read_csv()` recognized that this column
 contained date information. We can now use the `day()`, `month()`,  `year()`,
 `hour()`, `minute()`,  and `second()` functions to extract this information from 
-the date, and create new columns in our data frame to store it:
+the date, and create new columns in our tibble to store it:
 
 ```{r, purl=FALSE}
 data$day <- day(times)
@@ -680,7 +682,7 @@ data$seconds <- second(times)
 data
 ```
 
-Notice the six new columns at the end of our data frame.
+Notice the six new columns at the end of our tibble.
 
 In our example above, the `checkin_time` column was read in correctly as a
 `Date` variable but generally that is not the case. Date columns are often read
@@ -714,6 +716,43 @@ data2
 `Date1` and `Date2` store the exact same data! Lubridate is preferred to base R, 
 but either function can be used.
 
+## Outputting Data
+
+Occasionally, after editing a dataset within RStudio, you may want to output the
+updated dataset to a CSV file. This would allow you to open the updated information
+in Excel, Google Sheets, or a different RMarkdown file!
+
+To output a file to CSV, we will be using the `write_csv()` function from the 
+**`readr`** package. Below, we will be outputting our updated data with our new
+date and time columns as `"anonymized_data_2.csv"`:
+
+```{r, eval=TRUE, message=FALSE, purl=FALSE}
+#takes the data tibble and outputs it as a csv file
+write_csv(data, "data/anonymized_data_2.csv")
+```
+
+When choosing the name for the new file, ensure there are no files with the same
+name. By default, `write_csv()` will overwrite any files of the same name without a
+warning!
+
+Additionally, you may have noticed we included the file path when specifying the 
+name of the new CSV. When creating any sort of new file -- whether that be an image, 
+CSV, or otherwise -- R will place the file in the current working directory! In 
+other words, R will always place new files in the same folder as the RMarkdown you're 
+working in, unless specified otherwise.
+
+Since we have a specific folder (called `"data"`) to store our csv files, we
+specify that we want the new CSV file to go in that folder by adding `"data/"`
+before the file name!
+
+If you want to output your new csv to a different file outside of the working 
+directory, you can use an entire file path (ex. 
+`"C:/Users/name/Documents/anonymized_data_2.csv"`) to specify exactly where you 
+want the file to be saved.
+
+Note: similarly to reading in CSV files, **`readr`** has a alternate version of
+`write_csv()` called `write_csv2()` that uses commas as decimal separators and 
+semicolons as field delimiters.
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
 
@@ -721,7 +760,7 @@ but either function can be used.
 - Access rows and columns in a tibble in R.
 - Use factors to represent categorical data in R.
 - Use datetime to represent data in R.
-- Output a changed dataset to CSV in R.
+- Output an updated dataset to CSV in R.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 

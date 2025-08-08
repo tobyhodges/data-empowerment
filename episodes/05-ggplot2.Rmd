@@ -5,17 +5,15 @@ exercises: 35
 source: Rmd
 ---
 
-```{r setup, include=FALSE}
-# We will be using the anonymized check-in data from a previous episode.
+```{r glosario, include=FALSE}
+library(glosario)
 ```
 
 :::: instructor
 
-- This episode is a broad overview of ggplot2 and focuses on (1) getting
-  familiar with the layering system of ggplot2, (2) using the argument `group`
-  in the `aes()` function, (3) basic customization of the plots.
-- The data we're using is an anonymized check-in dataset containing timestamps, 
-  locations, precincts, and device information.
+- This episode is a broad overview of ggplot2 and focuses on getting
+  familiar with the layering system of ggplot2, using the argument `group`
+  in the `aes()` function, and basic customization of the plots.
 - We'll show how to visualize patterns in check-in behavior across different 
   locations and devices, and introduce mapping techniques.
 
@@ -23,11 +21,11 @@ source: Rmd
 
 ::::::::::::::::::::::::::::::::::::::: objectives
 
-- Produce scatter plots, boxplots, and barplots using ggplot.
+- Produce scatter plots, box plots, and bar plots using ggplot.
 - Create time series plots for temporal check-in data.
 - Set universal plot settings.
 - Describe what faceting is and apply faceting in ggplot.
-- Modify the aesthetics of an existing ggplot plot (including axis labels and colour).
+- Modify the aesthetics of an existing ggplot plot (including axis labels and color).
 - Build complex and customized plots from data in a data frame.
 - Create maps with ggplot2 to visualize location-based data.
 - Recognize the differences between base R, lattice, and ggplot visualizations.
@@ -44,102 +42,120 @@ source: Rmd
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-We start by loading the required packages. **`ggplot2`** is included in the
-**`tidyverse`** package.
+We start by loading the required packages: **`tidyverse`** and **`lubridate`**.
+As you may recall, **`ggplot2`** is included in the **`tidyverse`** package, so 
+we do not need to load **`ggplot2`** in separately.
 
 ```{r load-package, message=FALSE, purl=FALSE}
 library(tidyverse)
-library(lubridate) # For working with date-time data
+library(here)
+library(lubridate) 
 ```
 
-Now let's load our check-in data:
-
-```{r load-data, purl=FALSE}
-checkins <- read_csv("data/anonymized_data.csv")
+Next, let's load in our data! Throughout this lesson, we will be using a sampled 
+version of the data we created at the end of "Starting With Data". 
+In practice, sampling data before visualization is NOT required; however, due to 
+the size of our original data set, using a smaller, sampled data set will allow 
+us to generate plots much faster!
+```{r, eval=TRUE, message=FALSE, purl=FALSE}
+data <- read_csv(here("data", "anonymized_data_2_sample.csv"))
 ```
 
-Let's first examine our data structure:
-
+Before we continue, let's take a look at the structure and size of our data set 
+to see what we'll be working with in detail:
 ```{r examine-data}
-glimpse(checkins)
+glimpse(data)
 ```
 
-To work effectively with the timestamps, we need to convert the `checkin_time` column to a proper datetime format:
+As you may notice, the house exceeds 12, meaning this data is in 24 hour time! If 
+you are unfamiliar, this means 13 represents 1PM, 14 represents 2PM, and so on.
 
-```{r process-data}
-checkins <- checkins %>%
-  mutate(
-    checkin_time = ymd_hms(checkin_time),
-    checkin_date = as.Date(checkin_time),
-    checkin_hour = hour(checkin_time),
-    checkin_minute = minute(checkin_time)
-  )
-```
+Additionally, for those curious, the original data set had approximately 352k 
+lines, which means this data set is less than 10% of the size!
 
 ## Visualization Options in R
+Before we start with **`ggplot2`**, it's helpful to know that there are several 
+ways to create visualizations in R. While **`ggplot2`** is great for building 
+complex and highly customizable plots, there are simpler and quicker alternatives 
+that you might encounter or use depending on the context. Let's briefly explore a 
+few of them:
 
-Before we start with **`ggplot2`**, it's helpful to know that there are several ways to create visualizations in R. While **`ggplot2`** is great for building complex and highly customizable plots, there are simpler and quicker alternatives that you might encounter or use depending on the context. Let's briefly explore a few of them:
+### Base-R Plots
+Base R plots are the simplest form of visualization and are great for quick, 
+exploratory analysis. You can create plots with very little code, but customizing 
+them can be cumbersome compared to **`ggplot2`**.
 
-### R Base Plots
-Base R plots are the simplest form of visualization and are great for quick, exploratory analysis. You can create plots with very little code, but customizing them can be cumbersome compared to **`ggplot2`**.
-
-Example of a simple time series plot in base R showing check-ins by hour:
-
+Example of a simple `r gdef('time_series', 'time series')` plot in base R showing 
+the number of check-ins by hour:
 ```{r, purl=FALSE}
-hourly_counts <- checkins %>%
-  count(checkin_hour)
+hourly_counts <- data %>%
+                 count(hour)
 
-plot(hourly_counts$checkin_hour, hourly_counts$n,
-     main = "Base R Plot: Check-ins by Hour",
+plot(hourly_counts$hour, hourly_counts$n,
+     main = "Base R Plot: Check-Ins by Hour",
      xlab = "Hour of Day",
-     ylab = "Number of Check-ins",
-     type = "l")  # 'l' for line
+     ylab = "Number of Check-Ins",
+     type = "l")  #'l' for line
 ```
 
 ### **`Lattice`**
 Lattice is another plotting system in R, which allows for creating multi-panel plots easily. It's different from ggplot2 because you define the entire plot in a single function call, and modifications after plotting are limited.
 
 Example of a lattice plot showing check-ins by device for different locations:
-
 ```{r lattice, message=FALSE, purl=FALSE}
 library(lattice)
 ```
+
 ```{r, purl=FALSE}
-xyplot(checkin_hour ~ device | location, data = checkins,
-       main = "Lattice Plot: Check-in Hour by Device and Location",
+#grabs specific locations (so the graph isn't giant) and converts locations + devices to factors
+checkins_lattice <- data %>%
+                    filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003")) %>%
+                    #we're removing "DEVICE_" because it causes overlap within the plot
+                    #if you're curious, remove this line and regenerate the plot!
+                    mutate(device = str_remove(device, "DEVICE_")) %>%
+                    mutate(
+                      device = as.factor(device),
+                      location = as.factor(location)
+                    )
+
+#creates a lattice boxplot (bwplot)
+bwplot(hour ~ device | location, data = checkins_lattice,
+       main = "Lattice Plot: Check-in Hour Distribution by Device and Location",
        xlab = "Device",
-       ylab = "Hour of Check-in")
+       ylab = "Hour of Check-in",
+       layout = c(length(unique(checkins_lattice$location)), 1), #adjusts layout for multiple locations
+       strip = strip.custom(bg="lightgrey"),
+       scales = list(y = list(at = 0:24)), #adds all hours on y, not just even numbers
+       panel = function(x, y, ...) {
+         panel.bwplot(x, y, ...)
+       })
 ```
 
 ## Plotting with **`ggplot2`**
 
-**`ggplot2`** is a plotting package that makes it simple to create complex plots
-from data stored in a data frame. It provides a programmatic interface for
+**`ggplot2`** is a plotting package that makes creating complex plots from data 
+stored in a data frame simpler. It provides a programmatic interface for
 specifying what variables to plot, how they are displayed, and general visual
-properties. Therefore, we only need minimal changes if the underlying data
-change or if we decide to change from a bar plot to a scatterplot. This helps in
-creating publication quality plots with minimal amounts of adjustments and
-tweaking.
+properties. As a result, if the underlying data changes or if we decide to switch 
+from a bar plot to a scatter plot, we only have to make minimal adjustments to the 
+code!
 
-**`ggplot2`** functions work best with data in the 'long' format, i.e., a column for every
-dimension, and a row for every observation. Well-structured data will save you
-lots of time when making figures with **`ggplot2`**
+**`ggplot2`** functions work best with data in the 'long' format. As you may recall 
+from "Data Wrangling with tidyr", this consists of a column for every dimension, 
+and a row for every observation. Ensuring you use well-structured data will save 
+you lots of time when making figures with **`ggplot2`**
 
-ggplot graphics are built step by step by adding new elements. Adding layers in
-this fashion allows for extensive flexibility and customization of plots.
+**`ggplot2`** graphics are built step by step by adding new elements. Adding layers 
+in this fashion allows for extensive flexibility and customization of plots.
 
-Each chart built with ggplot2 must include the following
-
+Each chart built with **`ggplot2`** must include the following:
 - Data
-
 - Aesthetic mapping (aes)
-  
   - Describes how variables are mapped onto graphical attributes
   - Visual attribute of data including x-y axes, color, fill, shape, and alpha
-
 - Geometric objects (geom)
-  
-  - Determines how values are rendered graphically, as bars (`geom_bar`), scatterplot (`geom_point`), line (`geom_line`), etc.
+  - Determines how values are rendered graphically, as bars (`geom_bar`), scatterplot 
+    (`geom_point`), line (`geom_line`), etc.
 
 Thus, the template for graphic in ggplot2 is:
 
@@ -149,56 +165,57 @@ Thus, the template for graphic in ggplot2 is:
     <GEOM_FUNCTION>()
 ```
 
-Remember that the pipe operator `%>%` places the result of the previous line(s) into the first argument of the function. **`ggplot`** is a function that expects a data frame to be the first argument. This allows for us to change from specifying the `data =` argument within the `ggplot` function and instead pipe the data into the function.
+Remember that the pipe operator `%>%` places the result of the previous line(s) 
+into the first argument of the function. The **`ggplot`** function expects a data 
+frame to be the first argument, which allows us to change from specifying the 
+`data =` argument within the `ggplot` function to instead piping the data into 
+the function.
 
-- use the `ggplot()` function and bind the plot to a specific data frame.
+To create a chart with **`ggplot2`**, follow the steps below:
 
+1. use the `ggplot()` function and bind the plot to a specific data frame.
 ```{r ggplot-steps-1, eval=FALSE, purl=FALSE}
-checkins %>%
+data %>%
   ggplot()
 ```
 
-- define a mapping (using the aesthetic (`aes`) function), by selecting the variables to be plotted and specifying how to present them in the graph, e.g. as x/y positions or characteristics such as size, shape, color, etc.
-
+2. Using the aesthetic (`aes`) function, define your mapping by selecting the 
+variables to be plotted and specifying how to present them in the graph, e.g. as 
+x/y positions or characteristics such as size, shape, color, etc.
 ```{r ggplot-steps-2, eval=FALSE, purl=FALSE}
-checkins %>%
-  ggplot(aes(x = checkin_hour, y = precinct))
+data %>%
+  ggplot(aes(x = precinct))
 ```
 
-- add 'geoms' – graphical representations of the data in the plot (points,
-  lines, bars). **`ggplot2`** offers many different geoms; we will use some
-  common ones today, including:
-  
-  - `geom_bar()` for counting observations in categories
-  - `geom_histogram()` for showing distributions
-  - `geom_boxplot()` for statistical summaries
-  - `geom_line()` for trend lines, time series, etc.
+3. Add 'geoms' – graphical representations of the data in the plot (points,
+   lines, bars). **`ggplot2`** offers many different geoms; we will use some
+   common ones today, including:
+   - `geom_bar()` for counting observations in categories
+   - `geom_histogram()` for showing distributions
+   - `geom_boxplot()` for statistical summaries
+   - `geom_line()` for trend lines, time series, etc.
 
-To add a geom to the plot use the `+` operator. Let's start by creating a bar chart showing the distribution of check-ins across precincts:
-
+To add a geom to the plot use the `+` operator. Let's start by creating a bar 
+chart showing the distribution of check-ins across precincts:
 ```{r first-ggplot, purl=FALSE}
-checkins %>%
+data %>%
   ggplot(aes(x = precinct)) +
-  geom_bar() +
-  labs(title = "Number of Check-ins by Precinct",
-       x = "Precinct",
-       y = "Count")
+  geom_bar()
 ```
 
 The `+` in the **`ggplot2`** package is particularly useful because it allows
 you to modify existing `ggplot` objects. This means you can easily set up plot
-templates and conveniently explore different types of plots, so the above plot
-can also be generated with code like this, similar to the "intermediate steps"
-approach:
+templates and conveniently explore different types of plots!
+Using this idea, the above plot can also be generated with code like this, 
+similar to the "intermediate steps" approach:
+```{r first-ggplot-with-plus, eval=FALSE, purl=FALSE}
+#assign the plot to a variable
+plot <- data %>%
+        ggplot(aes(x = precinct))
 
-```{r first-ggplot-with-plus, fig.alt="Scatter plot of check-in hour versus precinct number.", eval=FALSE, purl=FALSE}
-# Assign plot to a variable
-checkins_plot <- checkins %>%
-  ggplot(aes(x = checkin_hour, y = precinct))
-
-# Draw the plot as a dot plot
-checkins_plot +
-  geom_point()
+#draw the plot as a bar plot
+plot +
+  geom_bar()
 ```
 
 :::::::::::::::::::::::::::::::::::::::::  callout
@@ -214,9 +231,7 @@ checkins_plot +
   containing the *previous* layer. If, instead, the `+` sign is added at the
   beginning of the line containing the new layer, **`ggplot2`** will not add
   the new layer and will return an error message.
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-
+  
 ```{r ggplot-with-plus-position, eval=FALSE, purl=FALSE}
 ## This is the correct syntax for adding layers
 checkins_plot +
@@ -227,182 +242,353 @@ checkins_plot
 + geom_point()
 ```
 
-## Building your plots iteratively
+::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## Building Your Plots Iteratively
 
 Building plots with **`ggplot2`** is typically an iterative process. We start by
-defining the dataset we'll use, lay out the axes, and choose a geom.
+defining the data set we'll use, lay out the axes, and choose a geom.
 
-Let's create a time series plot showing the number of check-ins per hour:
+Let's re-create the time-series plot we made for the Base-R demonstration:
+```{r create-time-series, purl=FALSE}
+#using the hourly_counts we created, generate a time-series plot
+hourly_counts %>%
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() #creates a line plot using the x and y from the ggplot above!
+```
+Now that we have a baseline plot to start from, we can start modifying it to extract 
+additional information! For instance, when inspecting the plot, we can notice that 
+it's a bit difficult to tell at first glance where each hour sits on the line.
 
-```{r create-time-series, fig.alt="Time series plot showing check-ins by hour.", purl=FALSE}
-# Group data by hour and count check-ins
-hourly_data <- checkins %>%
-  count(checkin_hour)
-
-# Create the time series plot
-hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
+To resolve this, we will add points to the line to clearly indicate each hour:
+```{r time-series-points, purl=FALSE}
+hourly_counts %>%
+  ggplot(aes(x = hour, y = n)) +
   geom_line() +
   geom_point()
 ```
 
-Now let's improve this plot by adding better labels and a title:
-
-```{r improve-time-series, fig.alt="Time series plot showing check-ins by hour with title and better labels.", purl=FALSE}
-hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
+Next, we will add colors for all of the points by specifying a `color` argument 
+inside the `geom_point` function:
+```{r adding-colors, purl=FALSE}
+hourly_counts %>%
+  ggplot(aes(x = hour, y = n)) +
   geom_line() +
-  geom_point() +
-  labs(
-    title = "Check-ins by Hour of Day",
-    x = "Hour (24-hour format)",
-    y = "Number of Check-ins"
-  )
+  geom_point(color = "blue")
 ```
 
-We can also look at the distribution of check-ins by location using a jitter plot:
+To color each point in the plot differently, you *could* use a vector as an input 
+to the `color` argument; however, because we are now mapping features of the data 
+to a color, instead of setting one color for all points, the color of the points 
+now needs to be set inside a call to the `aes` function. When we map a variable 
+in our data to the color of the points, **`ggplot2`** will provide a different 
+color corresponding to the different values of the variable. 
 
-```{r location-distribution, fig.alt="Scatter plot showing check-in hour distribution by location.", purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour)) +
-  geom_jitter(alpha = 0.5, width = 0.2, height = 0.1) +
-  labs(
-    title = "Distribution of Check-in Hours by Location",
-    x = "Location",
-    y = "Hour of Check-in"
-  )
+Let's apply this to our plot below, changing the color of each point based on 
+the hour:
+```{r adding-colors, purl=FALSE}
+hourly_counts %>%
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() +
+  geom_point(aes(color = hour))
 ```
 
-Adding transparency with `alpha` helps us see where points are overlapping. We can add color based on the device used:
+Unfortunately, this doesn't tell us much about our data, just that each point represents 
+a different hour (which we already knew!). Additionally, you may notice that after 
+adding conditional coloring using `aes()`, ggplot automatically added a legend to 
+explain what the different colors represent/mean!
 
-```{r adding-colors, fig.alt="Scatter plot of check-in hour distribution by location, colored by device.", purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour)) +
-  geom_jitter(aes(color = device), alpha = 0.5, width = 0.2, height = 0.1) +
-  labs(
-    title = "Distribution of Check-in Hours by Location and Device",
-    x = "Location",
-    y = "Hour of Check-in"
-  )
+Now, instead of coloring each point based on one of the variables we already have, 
+we're going to calculate the average hourly count and set the point to green 
+if the count at that hour is *above* average and red if the count at that hour is 
+*below* average!
+
+To do this, we will calculate the average hourly count and, using mutate, add a 
+column to our hourly_counts data frame that indicates whether the count at that 
+hour is above or below the calculated average! Then, we will use the `scale_color_manual` 
+function to manually color these points green and red instead of the default (which,
+when writing this lesson, was red and blue, respectively).
+```{r adding-colors, purl=FALSE}
+#calculate average
+average <- mean(hourly_counts$n)
+
+#plot
+hourly_counts %>%
+  mutate(avg_color = ifelse(n > average, "Above", "Below")) %>% #adds the additional column
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() +
+  geom_point(aes(color = avg_color)) + #colors the points
+  scale_color_manual(values = c("Above" = "green", "Below" = "red")) #chooses the colors
 ```
 
-:::::::::::::::::::::::::::::::::::::::::  callout
+Additionally, you may want to increase the size of the points! This can be accomplished 
+using the `size` argument within the `geom_point` function, as seen below:
+```{r adding-colors, purl=FALSE}
+#calculate average
+average <- mean(hourly_counts$n)
 
-## Notes
-
-When you have overlapping points like in our time data, another useful way to visualize the data is with a count plot, where the size of points represents frequencies:
-
-```{r color-by-species-notes, fig.alt="Count plot of check-in hour by location, with point size showing frequency.", purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour, color = device)) +
-  geom_count()
+#plot
+hourly_counts %>%
+  mutate(avg_color = ifelse(n > average, "Above", "Below")) %>% #adds the additional column
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() +
+  geom_point(aes(color = avg_color), size = 2) + #colors the points
+  scale_color_manual(values = c("Above" = "green", "Below" = "red")) #chooses the colors
 ```
 
-::::::::::::::::::::::::::::::::::::::::::::::::::
+At this point, our plot is mostly completed! The only remaining issue is the lack 
+of proper titling and labeling.
 
-:::::::::::::::::::::::::::::::::::::::  challenge
+By default, the axes labels on a plot are determined by the name of the variable
+being plotted. However, **`ggplot2`** offers lots of customization options,
+like specifying the axes labels and adding a title to the plot, with
+relatively few lines of code. We will add more informative x-and y-axis
+labels to our plot, a more explanatory label to the legend, and a plot title.
 
-## Exercise
+The `labs` function takes the following arguments:
 
-Use what you just learned to create a scatter plot of `checkin_minute` by `location`
-with the `device` showing in different colours. Does this give you any insights about check-in patterns?
+- `title` -- to produce a plot title
+- `subtitle` -- to produce a plot subtitle (smaller text placed beneath the title)
+- `caption` -- a caption for the plot
+- `...` -- any pair of name and value for aesthetics used in the plot (e.g.,
+  `x`, `y`, `fill`, `color`, `size`)
 
-:::::::::::::::  solution
-
-## Solution
-
-```{r scatter-challenge, fig.alt="Scatter plot showing check-in minutes by location colored by device.", answer=TRUE, purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_minute)) +
-  geom_jitter(aes(color = device),
-              alpha = 0.5,
-              width = 0.2,
-              height = 0.2) +
-  labs(title = "Check-in Minutes by Location and Device",
-       x = "Location",
-       y = "Minute of Check-in")
+```{r barplot-wall-types-labeled, fig.alt="Previous plot with plot title and labells added."}
+hourly_counts %>%
+  mutate(avg_color = ifelse(n > average, "Above", "Below")) %>%
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() +
+  geom_point(aes(color = avg_color), size = 2) +
+  scale_color_manual(values = c("Above" = "green", "Below" = "red")) +
+  labs(title = "Check-In Count per Hour",
+       x = "Hour (24H Format)",
+       y = "Count",
+       color = "Relation to Average")
 ```
 
-This visualization can help us see if certain devices are used for check-ins at specific minutes within the hour at different locations.
+Our final step will be to improve the x-axis to include *all* hours, not just 10, 
+15, and 20! This can be achieved using the `scale_x_continuous` function.
 
-:::::::::::::::::::::::::
+The `scale_x_continuous` function is used to customize the x-axis when the x-axis 
+is numeric (or continuous!). Within this function, you can control the axis limit 
+(or range) and breaks (where tick marks appear).
 
-::::::::::::::::::::::::::::::::::::::::::::::::::
+Let's finish our plot using this function:
+```{r barplot-wall-types-labeled, fig.alt="Previous plot with plot title and labells added."}
+hourly_counts %>%
+  mutate(avg_color = ifelse(n > average, "Above", "Below")) %>%
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() +
+  geom_point(aes(color = avg_color), size = 2) +
+  scale_color_manual(values = c("Above" = "green", "Below" = "red")) +
+  labs(title = "Check-In Count per Hour",
+       x = "Hour (24H Format)",
+       y = "Count",
+       color = "Relation to Average") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1))
+```
+
+While the plot above gives information on the number of check-ins across *all* 
+locations, we may want information unique to individual locations instead. To achieve 
+this, using the information above, we can calculate the amount of check-ins every hour and 
+add a line for each of the first five locations below:
+```{r checkin-rate}
+#calculate check-ins per hour for each location
+hourly_count <- data %>%
+  count(location, hour)
+
+#plot multiple lines, changing the color for each
+hourly_count %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>% 
+  ggplot(aes(x = hour, y = n, color = location)) + #Note: putting color in ggplot applies to all plots (geom_line AND geom_point)!
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Hourly Check-In Count by Location",
+       x = "Hour (24H Format)",
+       y = "Count",
+       color = "Location") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1))
+```
+
+As you can see, LOCATION_003 is very popular at 10AM (and may benefit from additional 
+support from employees/volunteers), whereas LOCATION_002 dies down after 11AM.
 
 ## Boxplot
 
-We can use boxplots to visualize the distribution of check-in hours for each location:
-
-```{r boxplot, fig.alt="Box plot of check-in hours by location.", purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour)) +
-  geom_boxplot() +
-  labs(title = "Distribution of Check-in Hours by Location",
-       x = "Location",
-       y = "Hour of Check-in")
+We can use box plots to visualize the distribution of check-in times for specific 
+locations:
+```{r boxplot, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black")
 ```
 
-By adding points to a boxplot, we can have a better idea of the number of
+As you may notice, it's a bit difficult to understand this plot at first glance! 
+To resolve this, let's begin by adding all of the hours on the y-axis using the 
+`scale_y_continuous` function! This function behaves the exact same as the `scale_x_continuous` 
+function, but it applies to the y-axis instead:
+```{r boxplot-with-ticks, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  scale_y_continuous(breaks = seq(0, 23, by = 1)) 
+```
+
+By adding points to a box plot, we can have a better idea of the number of
 measurements and of their distribution:
-
-```{r boxplot-with-jitter, fig.alt="Box plot of check-in hours by location with individual data points overlaid.", purl=FALSE}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour)) +
-  geom_boxplot(alpha = 0) +
-  geom_jitter(alpha = 0.5,
-              color = "tomato",
-              width = 0.2,
-              height = 0.2) +
-  labs(title = "Distribution of Check-in Hours by Location",
-       x = "Location",
-       y = "Hour of Check-in")
+```{r boxplot-with-point, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  geom_point(color = "tomato") +
+  scale_y_continuous(breaks = seq(0, 23, by = 1))
 ```
 
-Notice how the boxplot layer is behind the jitter layer? What do you need to
-change in the code to put the boxplot layer in front of the jitter layer?
+Looking at this plot, from a rough estimate, it looks like there are far fewer 
+dots on the plot than there rows in our data frame. This should lead us to believe 
+that there may be multiple observations plotted on top of each other (e.g. three
+observations where `hour` is 12 and `location` is LOCATION_001). This is known as 
+"overplotting" and occurs when multiple data points share the same x and y 
+coordinates.
+
+There are two main ways to alleviate overplotting issues:
+1. changing the transparency of the points
+2. jittering the location of the points
+
+Let's first explore option 1, or changing the transparency of the points. When we 
+say "transparency", we mean the opacity/your ability to see through the point. We 
+can control the transparency of the points with the `alpha` argument!
+Values of `alpha` range from 0 to 1, with lower values corresponding to more 
+transparent colors (an `alpha` of 1 is the default value). Specifically, an alpha 
+of 0.1, would make a point one-tenth as opaque as a normal point. Stated differently 
+ten points stacked on top of each other would correspond to a normal point.
+
+With that being said, we're going to change the `alpha` to 0.5. in an attempt to 
+help fix the overplotting. As you may quickly notice, the overplotting is not solved, 
+but adding transparency begins to address this problem, as the points where there 
+are more overlapping observations are darker (as opposed to lighter red):
+```{r boxplot-with-alpha, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  geom_point(color = "tomato", alpha = 0.5) +
+  scale_y_continuous(breaks = seq(0, 23, by = 1))
+```
+
+Since that only helped a little bit with the overplotting problem, let's try option
+two and jitter the points on the plot, allowing us to see each point. This is due 
+to jittering introducing a little bit of randomness into the position of our points. 
+You can think of this process as taking the overplotted graph and giving it a tiny 
+shake! The points will move a little bit side-to-side and up-and-down, but their 
+position in comparison to the original plot won't dramatically change. 
+
+Note that this solution is only suitable for plotting integer figures! For numeric 
+figures with decimals, geom_jitter() becomes inappropriate because it obscures the 
+true value of the observation.
+
+We can jitter our points using the `geom_jitter()` function instead of the
+`geom_point()` function, as seen below:
+```{r boxplot-with-jitter, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  geom_jitter(color = "tomato", alpha = 0.5) +
+  scale_y_continuous(breaks = seq(0, 23, by = 1))
+```
+
+As you can see, the points have been moved dramatically! Thankfully, the `geom_jitter()` 
+function allows for us to specify the amount of random motion in the jitter by using 
+the `width` and `height` arguments. When we don't specify values for `width` and 
+`height`, `geom_jitter()` defaults to 40% of the resolution of the data (the smallest 
+change that can be measured). Hence, if we would like *less* spread in our jitter 
+than the default, we should pick values between 0.1 and 0.4. Experiment with the 
+values to see how your plot changes!
+
+Here, we initially chose a height of 0.05 (as too much variation in height may 
+suggest different times at first glance) and a width of 0.2:
+```{r boxplot-width-height, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  geom_jitter(color = "tomato", alpha = 0.5, height = 0.05, width = 0.2) +
+  scale_y_continuous(breaks = seq(0, 23, by = 1))
+```
+
+For our final step, let's add a title, appropriate labels, and improve the visuals 
+of the plot overall! Additionally, to clean the location names on the x-axis, we'll
+be using the `mutate` function (recall from Data Wrangling with dplyr) 
+to remove the "LOCATION_" prefix from each name (since the axis label will indicate
+that these are locations!):
+```{r boxplot-pretty, purl=FALSE}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>% #removes prefix
+  ggplot(aes(x = location, y = hour)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  geom_jitter(color = "tomato", alpha = 0.5, height = 0.05, width = 0.2) +
+  scale_y_continuous(breaks = seq(0, 23, by = 1)) + 
+  #adds labels to the plot
+  labs(title = "Distribution of Check-in Times by Location",
+       x = "Location",
+       y = "Hour (24-hour Format)")
+```
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-Boxplots are useful summaries, but hide the *shape* of the distribution. For
-example, if the distribution is bimodal, we would not see it in a
-boxplot. An alternative to the boxplot is the violin plot, where the shape
+Box plots are useful summaries, but hide the *shape* of the distribution. For
+example, if the distribution is bi-modal, we would not see it in a
+box plot. An alternative to the box plot is the violin plot, where the shape
 (of the density of points) is drawn.
 
-- Replace the box plot with a violin plot; see `geom_violin()`.
+Start by replacing the box plot with a violin plot; see `geom_violin()`.
 
 :::::::::::::::  solution
 
 ## Solution
 
 ```{r violin-plot}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_hour)) +
-  geom_violin(alpha = 0) +
-  geom_jitter(alpha = 0.5, color = "tomato") +
-  labs(title = "Distribution of Check-in Hours by Location",
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  ggplot(aes(x = location, y = hour)) +
+  geom_violin(fill = "lightblue", color = "black") +
+  geom_jitter(color = "tomato", alpha = 0.5, height = 0.05, width = 0.2) +
+  scale_y_continuous(breaks = seq(0, 23, by = 1)) + 
+  labs(title = "Distribution of Check-in Times by Location",
        x = "Location",
-       y = "Hour of Check-in")
+       y = "Hour (24-hour Format)")
 ```
 
 :::::::::::::::::::::::::
 
-So far, we've looked at the distribution of check-in hours within locations. Try
-making a new plot to explore the distribution of another variable within locations.
+So far, we've looked at the distribution of check-in times between locations. 
+Next, you're going to try making a new plot to explore the distribution of another 
+variable between locations.
 
-- Create a boxplot for `checkin_minute` for each location. Overlay the boxplot
-  layer on a jitter layer to show actual measurements.
+Create a box plot for `minute` for the locations above. Overlay a jitter layer to 
+on the box plot layer to display the distributions more accurately. Feel free to 
+select any fill, color, alpha, height, and width! Ensure a title and proper axis 
+labels are added.
 
 :::::::::::::::  solution
 
 ## Solution
 
-```{r boxplot-exercise, fig.alt="Box plot of check-in minutes by location, with dot plot added as additional layer to show individual values."}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_minute)) +
+```{r boxplot-exercise}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  ggplot(aes(x = location, y = minute)) +
   geom_boxplot(alpha = 0) +
-  geom_jitter(alpha = 0.5, width = 0.2, height = 0.2) +
+  geom_jitter(color = "navy", alpha = 0.5, height = 0, width = 0.2) +
   labs(title = "Distribution of Check-in Minutes by Location",
        x = "Location",
        y = "Minute of Check-in")
@@ -410,413 +596,683 @@ checkins %>%
 
 :::::::::::::::::::::::::
 
-- Add colour to the data points on your boxplot according to the device used.
+Lastly, color each point according to the device used! Ensure you change the name 
+of the legend as well and remove "DEVICE_" from all device names (to ensure a clean 
+legend).
 
 :::::::::::::::  solution
 
 ## Solution
 
-```{r boxplot-exercise-factor, fig.alt="Box plot of check-in minutes by location with points colored by device."}
-checkins %>%
-  ggplot(aes(x = location, y = checkin_minute)) +
+```{r boxplot-exercise-color}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = location, y = minute)) +
   geom_boxplot(alpha = 0) +
-  geom_jitter(aes(color = device), alpha = 0.5, width = 0.2, height = 0.2) +
-  labs(title = "Distribution of Check-in Minutes by Location and Device",
-       x = "Location", 
-       y = "Minute of Check-in")
+  geom_jitter(aes(color = device), alpha = 1, width = 0.2, height = 0.2) +
+  labs(title = "Distribution of Check-in Minutes by Location",
+       x = "Location",
+       y = "Minute of Check-in",
+       color = "Device")
 ```
 
 :::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-## Barplots
+## Bar Plot
 
-Barplots are also useful for visualizing categorical data. By default,
-`geom_bar` accepts a variable for x, and plots the number of instances each
-value of x (in this case, location) appears in the dataset.
+Bar plots are great for visualizing categorical data, such as counting the number 
+of check-ins per device, per location, or per precinct.
+By default, `geom_bar` accepts a variable for x, and plots the number of instances 
+of each value of x (in this case, location) within the data set.
 
-```{r barplot-1, fig.alt="Bar plot showing counts of check-ins by location."}
-checkins %>%
+Let's create a bar plot displaying check-in counts for the first five locations:
+```{r barplot-1}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
   ggplot(aes(x = location)) +
   geom_bar() +
-  labs(title = "Number of Check-ins by Location",
+  labs(title = "Check-In Count by Location",
        x = "Location",
        y = "Count")
 ```
 
-We can use the `fill` aesthetic for the `geom_bar()` geom to colour bars by
-the device used for check-in.
-
-```{r barplot-stack, fig.alt="Stacked bar plot of check-ins by location with each device as a different color."}
-checkins %>%
+Next, let's use the `fill` aesthetic for the `geom_bar()` geom to color bars by
+the device used for check-in:
+```{r barplot-stack}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
   ggplot(aes(x = location)) +
   geom_bar(aes(fill = device)) +
-  labs(title = "Number of Check-ins by Location and Device",
+  labs(title = "Check-In Count by Location",
        x = "Location",
-       y = "Count")
+       y = "Count",
+       fill = "Device")
 ```
 
-This creates a stacked bar chart. These are generally more difficult to read
-than side-by-side bars. We can separate the portions of the stacked bar that
+This creates a stacked bar chart. Unfortunately, as you may notice, this is a bit 
+difficult to read. Instead, we can separate the portions of the stacked bar that
 correspond to each device and put them side-by-side by using the `position`
 argument for `geom_bar()` and setting it to "dodge".
 
-```{r barplot-dodge, fig.alt="Bar plot of check-ins by location with each device as a separate bar."}
-checkins %>%
+Let's apply this concept to the code below, changing the title for clarity:
+```{r barplot-dodge}
+data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
   ggplot(aes(x = location)) +
   geom_bar(aes(fill = device), position = "dodge") +
-  labs(title = "Number of Check-ins by Location and Device",
+  labs(title = "Count of Check-Ins by Location for Each Device",
        x = "Location",
-       y = "Count")
+       y = "Count",
+       fill = "Device")
 ```
 
-Let's also create a bar chart showing the number of check-ins by hour:
+As you can see, this is much easier to read and interpret! 
 
-```{r barplot-hours, fig.alt="Bar plot showing number of check-ins by hour of day."}
-checkins %>%
-  ggplot(aes(x = checkin_hour)) +
-  geom_bar() +
-  labs(title = "Number of Check-ins by Hour of Day",
-       x = "Hour of Day",
-       y = "Count")
-```
-
-We might want to analyze what percentage of check-ins come from each device at each location. Let's calculate this:
+In some cases, we may be more interested in the *proportion* of each individual 
+device at each location rather than the actual *count* of each device. Proportions 
+are helpful because they account for differences in sample sizes, and instead focus 
+on distribution within specific locations! To compare proportions, we will first 
+create a new data frame (`prop_device`) with a new column named "prop", 
+representing the percent of each device within each location.
 
 ```{r percent-device-data}
-percent_device <- checkins %>%
+prop_device <- data %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
   count(location, device) %>%
   group_by(location) %>%
-  mutate(percent = (n / sum(n)) * 100) %>%
+  mutate(prop = n / sum(n)) %>%
   ungroup()
 ```
 
-Now we can create a plot showing the percentage of check-ins by device for each location:
-
-```{r barplot-device-percent, fig.alt="Bar plot showing percent of check-ins at each location by device."}
-percent_device %>%
-  ggplot(aes(x = location, y = percent, fill = device)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Percentage of Check-ins by Device at Each Location",
+Now, we can use this new data frame to create our plot showing the *proportion* 
+of each device at each location! When creating your plot, ensure you include `y = prop` 
+within the initial ggplot call AND `stat = "identity"` to tell ggplot to use the 
+y values instead of the count, and adjust labels/titles for clarity: 
+```{r barplot-device-percent}
+prop_device %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = location, y = prop)) +
+  geom_bar(aes(fill = device), position = "dodge", stat = "identity") +
+  labs(title = "Proportion of Check-Ins by Location for Each Device",
        x = "Location",
-       y = "Percentage")
+       y = "Proportion",
+       fill = "Device")
 ```
+
+Looking at this graph, we can see that all of the devices (except DEVICE_012) have 
+similar proportions (aka. usage rates) when sample sizes are taken into consideration!
+
+:::::::::::::::::::::::::::::::::::::::::  callout
+
+## Note
+
+If you'd prefer to visualize percentages instead of proportions, you can multiply 
+the prop column by 100! For example:
+```{r ggplot-with-plus-position, eval=FALSE, purl=FALSE}
+prop_device <- prop_device %>%
+  mutate(prop = (prop * 100))
+```
+
+If you adjust to percentages, however, please ensure you adjust titles and axis 
+labels accordingly!
+
+::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-Create a bar plot showing the proportion of check-ins by hour for each device.
-Which hours had the highest proportion of check-ins from each device?
+Using the information you learned above, create a bar plot showing the proportion 
+(or percentages, if you'd like) of check-ins by hour for the first four devices 
+(ie. "DEVICE_001", "DEVICE_002", "DEVICE_003", and "DEVICE_004"). Which hours 
+had the highest proportion of check-ins from DEVICE_001 and DEVICE_002?
 
 :::::::::::::::  solution
 
 ## Solution
 
-```{r barplot-device-hour, fig.alt="Bar plot showing proportion of check-ins by hour for each device."}
-# Calculate percentage of check-ins by hour and device
-percent_hour_device <- checkins %>%
-  count(checkin_hour, device) %>%
-  group_by(checkin_hour) %>%
-  mutate(percent = (n / sum(n)) * 100) %>%
+```{r barplot-device-hour}
+#calculate proportions
+prop_hour_device <- data %>%
+  filter(device %in% c("DEVICE_001", "DEVICE_002", "DEVICE_003", "DEVICE_004")) %>%
+  count(hour, device) %>%
+  group_by(hour) %>%
+  mutate(prop = n / sum(n)) %>%
   ungroup()
 
-# Create the plot
-percent_hour_device %>%
-  ggplot(aes(x = checkin_hour, y = percent, fill = device)) +
+#generate plot
+prop_hour_device %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = hour, y = prop, fill = device)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Proportion of Check-ins by Hour for Each Device",
-       x = "Hour of Day",
-       y = "Percentage")
+  labs(title = "Proportion of Check-Ins by Hour for Each Device",
+       x = "Hour (24H Format)",
+       y = "Proportion",
+       fill = "Device") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1))
+  #note: you can remove 6 and 20 by using this line instead: 
+  #scale_x_continuous(breaks = seq(7, 19, by = 1))
 ```
 
-From this plot, we can identify which hours had the highest proportion of check-ins from each device.
+From this plot, we can identify that DEVICE_001 has the highest proportion at 
+7:00/7AM and DEVICE_002 has the highest proportion at 19:00/7PM.
+
+:::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::::::::::  challenge
+
+## Challenge Exercise
+
+Create a bar plot showing the check-in counts for the ten devices with the highest 
+number of check-ins. Color each bar according to the device, title it appropriately, 
+and use proper axis labels!
+
+:::::::::::::::  solution
+
+## Solution
+
+```{r barplot-challenge}
+#retrieve top devices
+top_devices <- data %>%
+  count(device) %>%
+  top_n(10, n) %>%
+  pull(device)
+
+#create plot
+data %>%
+  filter(device %in% top_devices) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = device, fill = device)) +
+  geom_bar() +
+  labs(title = "Top 10 Devices by Number of Check-ins",
+       x = "Device",
+       y = "Count")+
+  theme_classic()
+```
 
 :::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
 ## Faceting
 
-Rather than creating a single plot with side-by-side bars for each
-hour, we may want to create multiple plots, where each plot shows the
-data for a single device. This would be especially useful if we had
-a large number of devices that we had sampled, as a large number of
-side-by-side bars will become more difficult to read.
+Rather than creating a single plot with side-by-side bars for each device, we 
+may want to create multiple plots, where each plot shows the data for a single 
+device. This would be especially useful if we had a large number of devices that 
+we had sampled (like 5 or 10), as side-by-side bars become harder to read as the 
+number of bars increase.
 
 **`ggplot2`** has a special technique called *faceting* that allows the
 user to split one plot into multiple plots based on a factor included
-in the dataset. Let's use it to split our check-in counts by hour for each device:
-
-```{r facet-by-device, fig.alt="Multi-panel line plot showing check-ins by hour for each device."}
-# Create hourly counts by device
-hourly_by_device <- checkins %>%
-  count(checkin_hour, device)
-
-# Create the faceted plot
-hourly_by_device %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Check-ins by Hour for Each Device",
-       x = "Hour of Day",
-       y = "Count") +
-  facet_wrap(~ device)
+in the data set. Below, we can use this technique to split our bar plot of check-in 
+proportions by hour for each device so each device has its own panel:
+```{r facet-fix}
+#generate plot
+prop_hour_device %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = hour, y = prop, fill = device)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Proportion of Check-Ins by Hour for Each Device",
+       x = "Hour (24H Format)",
+       y = "Proportion",
+       fill = "Device") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  facet_wrap(~ device, scales = "free_y") #here, we specify we want to facet wrap by device
 ```
 
-Click the "Zoom" button in your RStudio plots pane to view a larger
+You can click the "Zoom" button in your RStudio plots panel to view a larger
 version of this plot.
 
 Usually plots with white background look more readable when printed. We can set
 the background to white using the function `theme_bw()`. Additionally, we can remove
 the grid:
 
-```{r facet-theme-bw, fig.alt="Multi-panel line plot showing check-ins by hour for each device with clean black and white theme.", purl=FALSE}
-hourly_by_device %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Check-ins by Hour for Each Device",
-       x = "Hour of Day",
-       y = "Count") +
-  facet_wrap(~ device) +
+```{r facet-theme-bw, purl=FALSE}
+prop_hour_device %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = hour, y = prop, fill = device)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Proportion of Check-Ins by Hour for Each Device",
+       x = "Hour (24H Format)",
+       y = "Proportion",
+       fill = "Device") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  facet_wrap(~ device, scales = "free_y") +
   theme_bw() +
   theme(panel.grid = element_blank())
 ```
 
-We can also facet by both location and device to see patterns across both variables:
+We can also facet by location to see patterns of device proportions within different 
+locations:
+```{r facet-location-device-fixed}
+#creates new data using location information
+prop_hour_device_loc <- data %>%
+  filter(device %in% c("DEVICE_001", "DEVICE_002", "DEVICE_003", "DEVICE_004")) %>%
+  count(hour, location, device) %>% 
+  group_by(hour, location) %>% #this specifies to calculate within locations as well
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
 
-```{r facet-by-location-device, fig.alt="Multi-panel point plot showing check-in patterns by hour for each location and device combination."}
-# Count check-ins by hour, location, and device
-hourly_by_loc_device <- checkins %>%
-  count(checkin_hour, location, device)
-
-# Create the faceted plot
-hourly_by_loc_device %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_point() +
-  geom_line() +
-  labs(title = "Check-ins by Hour for Each Location and Device",
-       x = "Hour of Day",
-       y = "Count") +
-  facet_grid(location ~ device) +
+#generates plot
+prop_hour_device_loc %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = hour, y = prop, fill = device)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Hourly Distribution of Device Check-Ins, Faceted by Location",
+       x = "Hour (24H Format)",
+       y = "Proportion",
+       fill = "Device") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  facet_wrap(~ location, scales = "free_y") +
   theme_bw() +
   theme(panel.grid = element_blank())
 ```
+
+Looking at the graph above, we can see that at LOCATION_001, devices have varying 
+rates of usage throughout the day, and at LOCATION_002, devices are often used the 
+same amount!
+
+
+## Histograms
+
+When working with election data, understanding the distribution of check-ins over 
+time is crucial! As seen above, bar plots allow us to look at general peaks and 
+overall trends using the `hour` variable. However, if we wanted to look at the 
+distribution of check-ins at a more detailed level (like by minute intervals),
+bar plots become much less effective.
+
+In these cases, `r gdef('histogram', 'histograms')` are more appropriate to use! 
+This is due to histograms'unique ability to allow for the sorting of continuous 
+variables into bins, making it easier to identify trends.
+
+First, let's look at the bar chart below:
+```{r bar-hours}
+data %>%
+  ggplot(aes(x = hour)) +
+  geom_bar(color = "black", fill = "lightblue", ) +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  labs(title = "Check-In Distribution by Hour",
+       x = "Hour (24H Format)",
+       y = "Count")
+```
+
+Now, let's create a similar plot displaying the distribution of check-ins by 
+hour using a histogram instead of a bar plot: 
+```{r histogram-hours}
+data %>%
+  ggplot(aes(x = hour)) +
+  geom_histogram(color = "black", fill = "lightblue", binwidth = 1) +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  labs(title = "Check-In Distribution by Hour",
+       x = "Hour (24H Format)",
+       y = "Count")
+```
+
+As you may see, the plots look almost identical, save for the histogram having 
+bars that touch (since the data is continuous and not discrete/categorical).
+
+With histograms, however, we can create a more granular view by using smaller bins:
+```{r histogram-time-bins}
+#create a decimal representation of the data (hour + minutes)
+checkins_with_dec_hour <- data %>%
+  mutate(dec_hour = hour + minute/60)
+
+#plot with 15 minute bins (0.25 minute bins)
+checkins_with_dec_hour %>%
+  ggplot(aes(x = dec_hour)) +
+  geom_histogram(color = "black", fill = "lightblue", binwidth = 0.25) +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
+  labs(title = "Check-In Distribution by Hour (15-Minute Intervals)",
+       x = "Hour (24H Format)",
+       y = "Count")
+```
+
+Looking at this graph, it's clearer that there is a large spike of check-ins early 
+in the morning (between 7AM and 8AM). If you were to only look at the bar plot or 
+1-bin histogram, however, you may have assumed check-ins kept about the same rate 
+throughout the whole morning (7AM - 10AM)!
+
 
 ## Visualizing Location Data with Maps
 
-When working with location data, it's often useful to visualize it on a map. While our dataset has anonymized locations, I'll demonstrate how to work with spatial data in ggplot2 using a hypothetical example.
+When working with geographic or location data, it's often useful to visualize it 
+on a map. Throughout the next section, we'll demonstrate ways to work with spacial
+data using the Game of Thrones Dataset!
 
-To work with maps in ggplot2, we typically use additional packages:
-
-```{r load-map-packages, eval=FALSE}
-library(sf)      # For working with spatial data
-library(ggmap)   # For background maps
-library(maps)    # For map data
+First, let's load the `sf` package. This package allows gpplot2 to work with 
+spacial data (like shape files):
+```{r load-sf, eval=TRUE}
+library(sf)
 ```
 
-### Basic Map with Points
+Next, let's load in the map data containing our map polygons:
+```{r load-got-map-data, eval=TRUE}
+#read in data and save to object
+westeros_map <- st_read(here("data", "polygons_example_GoT.geojson"), quiet = TRUE)
 
-Let's create a hypothetical scenario where we have latitude and longitude for our locations. First, we'll create some fake coordinates for demonstration:
+#look at the data structure
+head(westeros_map, 3)
+```
 
-```{r create-fake-coordinates, eval=FALSE}
-# Create a hypothetical dataset with coordinates
-#(This is just for demonstration - your real data would have actual coordinates)
-location_coords <- tibble(
-  location = c("LOCATION_001", "LOCATION_002", "LOCATION_003"),
-  lat = c(40.7128, 41.8781, 34.0522),
-  lon = c(-74.0060, -87.6298, -118.2437)
+Finally, let's load the voting data and link it to our map data using the `merge` 
+function. This function allows for two data frames to be linked based off of a
+specified variable (in our case, the "id"):
+```{r load-voting-data, eval=TRUE}
+#read in data and save to object
+got_votes <- read_csv(here("data", "voting_example_GoT.csv"))
+
+#look at the data structure
+head(got_votes)
+
+#join data using the merge function
+westeros_voting <- merge(westeros_map, got_votes, by = "id")
+```
+
+### Map Introduction
+Now that our data is ready to be mapped, let's start by visualizing which regions
+favor Jon Snow over Daenerys Targaryen.
+
+When using spacial data, we use a special ggplot function called `geom_sf`. Simply,
+this tells ggplot to look at the simple features (like lines or polygons) in your 
+data and use that for the graph!
+
+Below, we will be using `geom_sf` on our combined data and use Jon_Snow_pct to 
+determine the level of support Jon Snow is getting from each region:
+```{r join-data-and-map, eval=TRUE}
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = Jon_Snow_pct)) +
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +
+  labs(title = "Support for Jon Snow across Westeros",
+       fill = "Support %") +
+  theme_bw()
+```
+
+Next, let's do the same for Daenerys Targaryen, but with red instead of blue for
+the color scale:
+```{r map-daenerys-support, eval=TRUE}
+# Create a map colored by Daenerys support
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = Daenerys_Targaryen_pct)) +
+  scale_fill_gradient(low = "pink", high = "darkred") +
+  labs(title = "Support for Daenerys Targaryen across Westeros",
+       fill = "Support %") +
+  theme_bw()
+```
+
+### Conditional Map Coloring
+
+Often, it may be more beneficial to color each part of the map according 
+to the candidate that received the most votes, rather than displaying the amount 
+of support a single candidate received.
+
+This can be achieved by determining which candidate received the most votes and 
+filling that section with that candidate's color using the `scale_fill_manual`
+function:
+```{r dominant-candidate-map, eval=TRUE}
+#create a column with the name of the dominant candidate
+westeros_voting$dominant <- ifelse(westeros_voting$Jon_Snow_pct > westeros_voting$Daenerys_Targaryen_pct, 
+                                  "Jon Snow", "Daenerys Targaryen")
+
+#pick fill colors based on the dominant candidate
+dom_color <- c("Jon Snow" = "steelblue", 
+               "Daenerys Targaryen" = "firebrick")
+
+#create a map with the specified coloring
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  scale_fill_manual(name = "Dominant Candidate", values = dom_color) +
+  labs(title = "Dominant Candidate by Region") +
+  theme_bw()
+```
+
+In some cases, you may not just be interested in who won each region, but additionally 
+by how much. To map this, first determine the margin of victory and add a column 
+containing how strong of a victory they had:
+```{r margin-of-victory, eval=TRUE}
+#calculate margin of victory
+westeros_voting$margin <- abs(westeros_voting$Jon_Snow_pct - westeros_voting$Daenerys_Targaryen_pct)
+
+#bin the margin into three levels (low, med, high)
+westeros_voting$margin_bin <- ifelse(
+  westeros_voting$margin <= 5, "Low",
+  ifelse(westeros_voting$margin <= 20, "Med",
+         "High")
 )
-
-# Join with our check-in data to get coordinates
-checkins_with_coords <- checkins %>%
-  left_join(location_coords, by = "location")
-
-# Count check-ins by location
-location_counts <- checkins_with_coords %>%
-  count(location, lat, lon)
 ```
 
-Now we can create a basic map with points representing each location:
+Using the information you gained above, you can now develop your "fill rule" and
+select the color that corresponds to each instance. In this case, your "fill rule" 
+consists of the winner of each region (ie. Jon Snow) and how high of a margin of 
+victory they had (ie. High):
+```{r margin-rule, eval=TRUE}
+#make a fill rule (ie. Jon Snow - High)
+westeros_voting$marg_fill <- paste(westeros_voting$dominant, westeros_voting$margin_bin, sep = " - ")
 
-```{r basic-map, eval=FALSE}
-# Get base map (this requires a Google API key in practice)
-# usa_map <- get_map(location = "united states", zoom = 4, maptype = "terrain")
+#pick fill colors based on the fill rule!
+marg_color <- c(
+  "Daenerys Targaryen - High" = "brown4",
+  "Daenerys Targaryen - Med" = "firebrick",
+  "Daenerys Targaryen - Low" = "pink",
+  "Jon Snow - High" = "darkblue",
+  "Jon Snow - Med" = "royalblue",
+  "Jon Snow - Low" = "lightblue"
+)
+```
 
-# For demonstration, we'll use a built-in US map
-us_map <- map_data("usa")
-
-# Create the map
+Your final step is to combine your fill rule and chosen colors with your mapping 
+information, creating your margin of victory map:
+```{r margin-map}
+#create margin of victory map
 ggplot() +
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group),
-               fill = "white", color = "black") +
-  geom_point(data = location_counts,
-             aes(x = lon, y = lat, size = n, color = location),
-             alpha = 0.7) +
-  scale_size_continuous(name = "Number of Check-ins") +
-  coord_fixed(1.3) +
-  labs(title = "Check-in Locations and Frequencies",
-       x = "Longitude",
-       y = "Latitude") +
-  theme_minimal()
+  geom_sf(data = westeros_voting, aes(fill = marg_fill)) +
+  scale_fill_manual(name = "Winner & Margin", values = marg_color) +
+  labs(title = "Margin of Victory in Each Region") +
+  theme_bw()
 ```
 
-### Working with Shapefile Data
+### Adding Map Labels
 
-If you have precinct boundaries in a shapefile format, you can use the `sf` package to load and visualize them:
+After ensuring your map includes all the information required, the final step is 
+adding region labels! Unfortunately, due to the nature of polygons, this is a bit 
+more difficult than simply using the `labs` function.
 
-```{r sf-example, eval=FALSE}
-# Load shapefile (in practice, replace with your actual file path)
-# precincts <- st_read("path/to/your/precincts.shp")
+To add region labels, your first step is to convert your data to an simple feature,
+also known as an sf, object. This will allow for the calculation of where your 
+labels will sit on your map:
+```{r convert-data, eval=TRUE}
+#convert to sf
+westeros_voting_sf <- st_as_sf(westeros_voting)
+```
 
-# Create synthetic precinct data for demonstration
-precincts <- tibble(
-  precinct = unique(checkins$precinct),
-  geometry = list(
-    # These would be actual polygon coordinates in real data
-    "POLYGON((-74.01 40.71, -74.02 40.71, -74.02 40.72, -74.01 40.72))"
-  )
-) %>%
-  st_as_sf(wkt = "geometry", crs = 4326)
+Your second step is to determine where your region labels will sit on your map! 
+This is completed by calculating the `r gdef('centroid', 'centroids')`, or center 
+points, of each region. Below, we will calculate the centroid of each region and 
+convert its x and y coordinates to columns for easier access:
+```{r calc-coordinates, eval=TRUE}
+#calculate centroid
+region_centroids <- st_centroid(westeros_voting_sf)
 
-# Join with check-in counts
-precinct_counts <- checkins %>%
-  count(precinct) %>%
-  left_join(precincts, by = "precinct")
+#extract the coordinates
+coords <- st_coordinates(region_centroids)
 
-# Plot the map with filled precincts
+#convert coordinates to columns coords.X and coords.Y
+region_centroids$coords.X <- coords[, 1]
+region_centroids$coords.Y <- coords[, 2]
+```
+
+Now that we have determined where the region labels will be placed, we can finally 
+add the region labels onto the map using the `geom_text` function. 
+
+Within this function, we can specify the data used (in this case, `region_centroids`),
+the coordinates, the information that will be used for the label, and text formatting 
+information (like size and bold/italics)!
+
+Additionally, it's important to note that we need to use `westeros_voting_sf` as 
+the data for the map instead of `westeros_voting`. This will ensure that the region 
+labels will properly sit on their proper locations!
+```{r map-with-labels, eval=TRUE}
+#create a map with the specified coloring
 ggplot() +
-  geom_sf(data = precinct_counts, aes(fill = n), color = "white") +
-  scale_fill_viridis_c(name = "Number of Check-ins") +
-  labs(title = "Check-in Counts by Precinct",
-       caption = "Darker colors indicate more check-ins") +
-  theme_minimal()
+  geom_sf(data = westeros_voting_sf, aes(fill = dominant)) +
+  geom_text(data = region_centroids, 
+            aes(x = coords.X, y = coords.Y, label = Name),
+            size = 2, fontface = "bold") +
+  scale_fill_manual(name = "Dominant Candidate", values = dom_color) +
+  labs(title = "Dominant Candidate by Region") +
+  theme_bw()
 ```
+As you may notice, some labels in dense areas are overlapping a lot! This is due 
+to the size of the map in your local version of R. To resolve this, you can export 
+the map at a larger size using `ggsave` (which will be covered at the end of this 
+lesson!).
 
-### Creating a Heatmap
-
-Another useful visualization is a heatmap showing check-in density:
-
-```{r heatmap, eval=FALSE}
-ggplot() +
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group),
-               fill = "white", color = "black") +
-  stat_density_2d(data = checkins_with_coords,
-                  aes(x = lon, y = lat, fill = stat(density)),
-                  geom = "tile", contour = FALSE, alpha = 0.7) +
-  scale_fill_viridis_c() +
-  coord_fixed(1.3) +
-  labs(title = "Check-in Density Heatmap",
-       x = "Longitude",
-       y = "Latitude") +
-  theme_minimal()
-```
+::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-Experiment with at least two different themes for your check-in visualizations. 
-Which do you like best for presenting your time-series data?
+Using what you've learned above, create a map displaying the peak check-in wait 
+times across the first 35 precincts. For this lesson, we will be using the 
+`avg_checkins.csv` file we created within "Data Wrangling with dplyr"!
+
+To complete this map, use the following steps:
+1. Read in your data as "checkin_data".
+2. Using the `merge` function, link together your "checkin_data" with the 
+  "westeros_map", creating a "westeros_checkins" dataframe. Hint: if the linking 
+  columns are named differently, use by.x and by.y to specify the two names (with 
+  x being the first data and y being the second).
+3. Generate your map based on the "westeros_checkins" data, filling each region based 
+  on the avg_checkin_length.
+4. Choose a title and change the name of the legend to "Check-In Times".
+
+:::::::::::::::  solution
+
+## Solution
+
+```{r map-solution}
+#read in data
+checkin_data <- read_csv(here("data", "avg_checkins.csv"))
+
+#link together map and checkin_data
+westeros_checkins <- merge(westeros_map, checkin_data, by.x = "id", by.y = "precinct")
+
+#generate map with labels
+ggplot() +
+  geom_sf(data = westeros_checkins, aes(fill = avg_checkin_length)) +
+  labs(title = "Average Check-In Times Across Westeros",
+       fill = "Check-In Times") +
+  theme_bw()
+```
+
+:::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ## Customization
 
-Take a look at the [**`ggplot2`** cheat
-sheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization-2.1.pdf),
-and think of ways you could improve the plot.
+### **`ggplot2`** Themes
 
-Let's create a custom theme for our check-in time visualization:
+In addition to `theme_bw()`, which changes the plot background to white,
+**`ggplot2`** comes with several other themes which can be useful to quickly
+change the look of your visualization. The complete list of themes is available
+at [https://ggplot2.tidyverse.org/reference/ggtheme.html](https://ggplot2.tidyverse.org/reference/ggtheme.html). 
+`theme_minimal()` and `theme_light()` are popular, and `theme_void()` can be
+useful as a starting point to create a new hand-crafted theme.
 
-```{r ggplot-customization, purl=FALSE}
-hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line(size = 1, color = "steelblue") +
-  geom_point(size = 3, color = "steelblue") +
-  labs(title = "Check-ins by Hour of Day",
-       subtitle = "Analysis of temporal check-in patterns",
-       caption = "Data source: anonymized_data.csv",
-       x = "Hour of Day (24-hour format)",
-       y = "Number of Check-ins") +
-  theme_bw()
-```
+The [ggthemes](https://jrnold.github.io/ggthemes/reference/index.html)
+package provides a wide variety of options (including an Excel 2003 theme). The
+[**`ggplot2`** extensions website](https://exts.ggplot2.tidyverse.org/) provides 
+a list of packages that extend the capabilities of **`ggplot2`**, including 
+additional themes.
 
-The axes have names, but their readability can be improved by
-increasing the font size:
 
-```{r ggplot-customization-font-size, purl=FALSE}
-hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line(size = 1, color = "steelblue") + 
-  geom_point(size = 3, color = "steelblue") +
-  labs(title = "Check-ins by Hour of Day",
-       subtitle = "Analysis of temporal check-in patterns",
-       caption = "Data source: anonymized_data.csv",
-       x = "Hour of Day (24-hour format)",
-       y = "Number of Check-ins") +
-  theme_bw() +
-  theme(text = element_text(size = 16))
-```
+### Custom Themes
 
-Note that it is also possible to change the fonts of your plots. If you are on
-Windows, you may have to install the [**`extrafont`**
-package](https://github.com/wch/extrafont), and follow the instructions included
-in the README for this package.
+If you do not like the themes offered, or you'd like to change a portion of a 
+theme, you can use the `theme()` function to manually customize your maps and 
+plots!
 
-We can add more customizations to improve the appearance of our plot:
+The `theme()` function allows you to customize all portions of a ggplot, including 
+the text, title, subtitle, and grids. You can find a full list either by following 
+[this link](https://ggplot2.tidyverse.org/reference/theme.html) or using the panel 
+on the right and navigating to the `theme` help page (Help > Packages > ggplot2 > theme).
 
-```{r ggplot-customization-advanced, fig.alt="Highly customized time series plot of check-ins by hour with professional styling.", purl=FALSE}
-hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line(size = 1.2, color = "steelblue") + 
-  geom_point(size = 4, color = "steelblue", alpha = 0.7) +
-  scale_x_continuous(breaks = 0:23) +  # Show all hours
-  labs(title = "Check-in Patterns Throughout the Day",
-       subtitle = "Analysis of temporal check-in patterns",
-       caption = "Data source: anonymized_data.csv",
-       x = "Hour of Day (24-hour format)",
-       y = "Number of Check-ins") +
+Below, we will be applying a few of these customizations to a plot from earlier 
+in the lesson:
+```{r ggplot-customization-advanced, purl=FALSE}
+prop_device %>%
+  filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+  mutate(location = str_remove(location, "LOCATION_")) %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = location, y = prop)) +
+  geom_bar(aes(fill = device), position = "dodge", stat = "identity") +
+  labs(title = "Proportion of Check-Ins by Location for Each Device",
+       x = "Location",
+       y = "Proportion",
+       fill = "Device") +
   theme_bw() +
   theme(
-    text = element_text(size = 14, family = "Arial"),
-    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 16, hjust = 0.5, color = "grey40"),
-    axis.title = element_text(face = "bold"),
+    text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "italic"),
     panel.grid.minor = element_blank(),
     panel.grid.major.x = element_blank(),
     panel.border = element_rect(color = "grey70")
   )
 ```
 
-If you like the changes you created better than the default theme, you can save
-them as an object to be able to easily apply them to other plots you may create:
+Note: it is also possible to change the fonts of your plots! If you are on
+Windows, you will have to install the [**`extrafont`** package](https://github.com/wch/extrafont)
+before doing so..
 
+Additionally, you like the changes you created better than the default themes, you 
+can save your changes as a custom theme for application to other plots:
 ```{r ggplot-custom-themes, purl=FALSE}
-my_theme <- theme(
-  text = element_text(size = 14, family = "Arial"),
-  plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-  plot.subtitle = element_text(size = 16, hjust = 0.5, color = "grey40"),
-  axis.title = element_text(face = "bold"),
-  panel.grid.minor = element_blank(),
-  panel.grid.major.x = element_blank(),
-  panel.border = element_rect(color = "grey70")
-)
+my_theme <- theme_bw() +
+  theme(
+    text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "italic"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.border = element_rect(color = "grey70")
+  )
 
-hourly_by_device %>%
-  ggplot(aes(x = checkin_hour, y = n, color = device)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  scale_x_continuous(breaks = 0:23, limits = c(0, 23)) +
-  labs(title = "Check-in Patterns by Device",
-       subtitle = "Hourly check-in activity",
-       x = "Hour of Day",
-       y = "Number of Check-ins") +
-  theme_bw() +
+prop_hour_device %>%
+  mutate(device = str_remove(device, "DEVICE_")) %>%
+  ggplot(aes(x = hour, y = prop, fill = device)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Proportion of Check-Ins by Hour for Each Device",
+       x = "Hour (24H Format)",
+       y = "Proportion",
+       fill = "Device") +
+  scale_x_continuous(breaks = seq(0, 24, by = 1)) +
   my_theme
 ```
+
+These themes can also be applied to maps, as seen below:
+```{r got-map-theme1, eval=TRUE}
+ggplot() +
+  geom_sf(data = westeros_voting, aes(fill = dominant)) +
+  scale_fill_manual(name = "Dominant Candidate", values = dom_color) +
+  labs(title = "Dominant Candidate by Region") +
+  my_theme
+```
+
+
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
@@ -824,215 +1280,53 @@ hourly_by_device %>%
 
 With all of this information in hand, please take another five minutes to
 either improve one of the plots generated in this exercise or create a
-beautiful graph of your own using the check-in data. Use the RStudio [**`ggplot2`** cheat sheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization-2.1.pdf)
-for inspiration. Here are some ideas:
+beautiful graph of your own using any of the data used throughout this lesson. 
 
-- Create a heatmap showing check-in activity by hour and location.
-- Make a line plot showing the cumulative number of check-ins over the course of the day.
-- Try using a different colour palette for your device comparison.
+You can use the RStudio [**`ggplot2`** cheat sheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization-2.1.pdf)
+for inspiration.
+
+Here are some ideas:
+- Make a line plot showing the cumulative number of check-ins over the course of 
+  the day.
+- Try using a different color palette for your device comparison.
+- Generate a new map using the GoT data.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-After creating your plot, you can save it to a file in your favourite format. The Export tab in the **Plot** pane in RStudio will save your plots at low resolution, which will not be accepted by many journals and will not scale well for posters.
+## Plot Output
 
-Instead, use the `ggsave()` function, which allows you to easily change the dimension and resolution of your plot by adjusting the appropriate arguments (`width`, `height` and `dpi`).
+After creating a plot, you may want to save it as a png (or other format). To do 
+this, you can use the use the `ggsave()` function, which allows you to easily 
+change the dimension and resolution of your plot by adjusting the appropriate 
+arguments (`width`, `height` and `dpi`) before saving the plot to the specified 
+directory.
 
-Make sure you have the `fig_output/` folder in your working directory.
-
+Here, we will save one of the plots we customized above:
 ```{r ggsave-example, eval=FALSE, purl=FALSE}
-my_plot <- hourly_data %>%
-  ggplot(aes(x = checkin_hour, y = n)) +
-  geom_line(size = 1.2, color = "steelblue") +
-  geom_point(size = 4, color = "steelblue", alpha = 0.7) +
-  scale_x_continuous(breaks = 0:23) +  # Show all hours
-  labs(title = "Check-in Patterns Throughout the Day",
-       subtitle = "Analysis of temporal check-in patterns",
-       caption = "Data source: anonymized_data.csv",
-       x = "Hour of Day (24-hour format)",
-       y = "Number of Check-ins") +
-  theme_bw() +
-  theme(
-    text = element_text(size = 14, family = "Arial"),
-    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 16, hjust = 0.5, color = "grey40"),
-    axis.title = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.border = element_rect(color = "grey70")
-  )
+plot <- prop_device %>%
+        filter(location %in% c("LOCATION_001", "LOCATION_002", "LOCATION_003", "LOCATION_004", "LOCATION_005")) %>%
+        mutate(location = str_remove(location, "LOCATION_")) %>%
+        mutate(device = str_remove(device, "DEVICE_")) %>%
+        ggplot(aes(x = location, y = prop)) +
+        geom_bar(aes(fill = device), position = "dodge", stat = "identity") +
+        labs(title = "Proportion of Check-Ins by Location for Each Device",
+             x = "Location",
+             y = "Proportion",
+             fill = "Device") +
+        theme_bw() +
+        theme(
+          text = element_text(size = 12),
+          plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+          axis.title = element_text(face = "italic"),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.border = element_rect(color = "grey70")
+        )
 
-ggsave("fig_output/checkin_patterns.png", my_plot, width = 10, height = 6, dpi = 300)
+ggsave("fig-output/device_prop.png", plot, width = 10, height = 6, dpi = 300)
 ```
 
-## Time-Based Analysis with Histograms and Time Buckets
-
-When working with election data, understanding the distribution of check-ins over time is crucial. Let's create some specialized time-based visualizations to better understand this data.
-
-First, let's create histograms to show the distribution of check-ins across the day:
-
-```{r histogram-hours, fig.alt="Histogram showing the distribution of check-ins by hour."}
-checkins %>%
-  ggplot(aes(x = checkin_hour)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
-  labs(title = "Distribution of Check-ins by Hour",
-       x = "Hour of Day (24-hour format)",
-       y = "Number of Check-ins") +
-  theme_bw()
-```
-
-We can also create a more granular view by using smaller bins:
-
-```{r histogram-time-bins, fig.alt="Histogram showing check-ins in 15-minute intervals."}
-# Create a decimal representation of time (hour + minute/60)
-checkins_with_decimal_hour <- checkins %>%
-  mutate(decimal_hour = checkin_hour + checkin_minute/60)
-
-# Plot with 15-minute bins (0.25 hour)
-checkins_with_decimal_hour %>%
-  ggplot(aes(x = decimal_hour)) +
-  geom_histogram(binwidth = 0.25, fill = "skyblue", color = "black") +
-  scale_x_continuous(breaks = 0:23) +
-  labs(title = "Check-ins in 15-minute Intervals",
-       x = "Hour of Day",
-       y = "Number of Check-ins") +
-  theme_bw()
-```
-
-We can create time buckets to analyze check-in patterns during specific parts of the day:
-
-```{r time-periods, fig.alt="Bar chart showing check-ins by time period of day."}
-# Create time periods
-checkins_with_periods <- checkins %>%
-  mutate(time_period = case_when(
-    checkin_hour < 9 ~ "Early Morning (before 9am)",
-    checkin_hour >= 9 & checkin_hour < 12 ~ "Morning (9am-12pm)",
-    checkin_hour >= 12 & checkin_hour < 17 ~ "Afternoon (12-5pm)",
-    checkin_hour >= 17 & checkin_hour < 20 ~ "Evening (5-8pm)",
-    TRUE ~ "Night (after 8pm)"
-  ))
-
-# Order the factor levels
-checkins_with_periods$time_period <- factor(
-  checkins_with_periods$time_period,
-  levels = c("Early Morning (before 9am)", 
-             "Morning (9am-12pm)", 
-             "Afternoon (12-5pm)", 
-             "Evening (5-8pm)", 
-             "Night (after 8pm)")
-)
-
-# Create the plot
-checkins_with_periods %>%
-  ggplot(aes(x = time_period)) +
-  geom_bar(fill = "steelblue") +
-  labs(title = "Check-ins by Time Period",
-       x = "Time of Day",
-       y = "Number of Check-ins") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-We can also visualize the hourly check-in rate, which is useful for polling station management:
-
-```{r checkin-rate, fig.alt="Line graph showing check-ins per hour rate."}
-# Calculate check-ins per hour by location
-hourly_rate <- checkins %>%
-  count(location, checkin_hour) %>%
-  rename(checkins_per_hour = n)
-
-# Plot the hourly rate
-hourly_rate %>%
-  ggplot(aes(x = checkin_hour, y = checkins_per_hour, color = location)) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  labs(title = "Hourly Check-in Rate by Location",
-       subtitle = "Helps identify peak hours and staffing needs",
-       x = "Hour of Day",
-       y = "Check-ins per Hour") +
-  theme_bw() +
-  theme(legend.position = "bottom")
-```
-
-Let's examine the cumulative check-ins to see how voting activity accumulates throughout the day:
-
-```{r cumulative-checkins, fig.alt="Cumulative line graph showing total check-ins over time."}
-# Calculate cumulative check-ins by hour
-cumulative_checkins <- checkins %>%
-  count(checkin_hour) %>%
-  arrange(checkin_hour) %>%
-  mutate(cumulative = cumsum(n))
-
-# Create the cumulative plot
-cumulative_checkins %>%
-  ggplot(aes(x = checkin_hour, y = cumulative)) +
-  geom_line(size = 1.2, color = "darkblue") +
-  geom_point(size = 3, color = "darkblue") +
-  scale_x_continuous(breaks = seq(0, 23, by = 2)) +
-  labs(title = "Cumulative Check-ins Throughout the Day",
-       subtitle = "Shows the accumulation of voters over time",
-       x = "Hour of Day",
-       y = "Total Check-ins") +
-  theme_bw() +
-  theme(panel.grid.minor = element_blank())
-```
-
-Finally, let's compare the check-in patterns across different locations with a heatmap:
-
-```{r location-hour-heatmap, fig.alt="Heatmap showing check-in density by hour and location."}
-# Create hour-location count data
-hour_location_counts <- checkins %>%
-  count(location, checkin_hour)
-
-# Create the heatmap
-hour_location_counts %>%
-  ggplot(aes(x = checkin_hour, y = location, fill = n)) +
-  geom_tile() +
-  scale_fill_viridis_c(name = "Number of\nCheck-ins") +
-  scale_x_continuous(breaks = 0:23) +
-  labs(title = "Check-in Density by Hour and Location",
-       subtitle = "Darker colors indicate more check-ins",
-       x = "Hour of Day",
-       y = "Location") +
-  theme_bw() +
-  theme(panel.grid = element_blank(),
-        legend.position = "right")
-```
-
-:::::::::::::::::::::::::::::::::::::::  challenge
-
-## Exercise
-
-Using the time period categories we created (`time_period`), create a stacked bar chart that shows the proportion of check-ins by device during each time period.
-
-:::::::::::::::  solution
-
-## Solution
-
-```{r time-period-device, fig.alt="Stacked bar chart showing proportion of devices used during each time period."}
-# Calculate counts and percentages
-period_device_counts <- checkins_with_periods %>%
-  count(time_period, device) %>%
-  group_by(time_period) %>%
-  mutate(percentage = n / sum(n) * 100) %>%
-  ungroup()
-
-# Create the stacked bar chart
-period_device_counts %>%
-  ggplot(aes(x = time_period, y = percentage, fill = device)) +
-  geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Proportion of Devices Used During Each Time Period",
-       x = "Time of Day",
-       y = "Percentage of Check-ins",
-       fill = "Device") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-This visualization shows which devices were most active during different parts of the day, which could be useful for optimizing device deployment in future elections.
-
-:::::::::::::::::::::::::
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
+You can find the png generated in your data folder!
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
 
@@ -1040,10 +1334,10 @@ This visualization shows which devices were most active during different parts o
 - The data set and coordinate system can be defined using the `ggplot` function.
 - Additional layers, including geoms, are added using the `+` operator.
 - Time-series data can be visualized using `geom_line()` and `geom_point()`.
-- Boxplots are useful for visualizing the distribution of check-in times by location.
-- Barplots are useful for visualizing counts of check-ins by categorical variables.
+- Box plots are useful for visualizing the distribution of check-in times by location.
+- Bar plots are useful for visualizing counts of check-ins by categorical variables.
 - Faceting allows you to generate multiple plots based on a categorical variable like device.
-- Spatial data can be visualized on maps using packages like `sf`, `ggmap`, and `maps`.
+- Spatial data can be visualized on maps using the `sf` and `ggplot2` packages.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
