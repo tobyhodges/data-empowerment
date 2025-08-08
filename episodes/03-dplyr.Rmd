@@ -84,7 +84,7 @@ library(tidyverse)
 library(here)
 
 #read in data
-data <- read_csv(here("data", "anonymized_data.csv"))
+data <- read_csv(here("data", "checkin_data.csv"))
 ```
 
 ## Selecting Columns
@@ -489,7 +489,7 @@ Additional examples of the **`mutate()`** function can be found [here](https://t
 
 ## Exercise
 
-Using what you've learned throughout this lesson, create a data frame called 
+Using what you've learned throughout this lesson, create a tibble called 
 "avg_checkins" that meets the following criteria:
 1. Includes only precincts from "PRECINCT_001" to "PRECINCT_035".
 2. Removes the "PRECINCT_0" prefix from the precinct names and converts each precinct 
@@ -497,7 +497,7 @@ Using what you've learned throughout this lesson, create a data frame called
 3. Calculates the average check-in length for each precinct, ensuring this column is 
    named "avg_checkin_length".
 4. Contains two columns: "precinct" and "avg_checkin_length".
-5. Sorts the data frame by precinct (1 to 35).
+5. Sorts the tibble by precinct (1 to 35).
 
 :::::::::::::::  solution
 

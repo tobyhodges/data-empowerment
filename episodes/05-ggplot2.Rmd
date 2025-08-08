@@ -26,7 +26,7 @@ library(glosario)
 - Set universal plot settings.
 - Describe what faceting is and apply faceting in ggplot.
 - Modify the aesthetics of an existing ggplot plot (including axis labels and color).
-- Build complex and customized plots from data in a data frame.
+- Build complex and customized plots from data in a tibble.
 - Create maps with ggplot2 to visualize location-based data.
 - Recognize the differences between base R, lattice, and ggplot visualizations.
 
@@ -58,7 +58,7 @@ In practice, sampling data before visualization is NOT required; however, due to
 the size of our original data set, using a smaller, sampled data set will allow 
 us to generate plots much faster!
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-data <- read_csv(here("data", "anonymized_data_2_sample.csv"))
+data <- read_csv(here("data", " checkin_sample_plotting.csv"))
 ```
 
 Before we continue, let's take a look at the structure and size of our data set 
@@ -134,7 +134,7 @@ bwplot(hour ~ device | location, data = checkins_lattice,
 ## Plotting with **`ggplot2`**
 
 **`ggplot2`** is a plotting package that makes creating complex plots from data 
-stored in a data frame simpler. It provides a programmatic interface for
+stored in a tibble simpler. It provides a programmatic interface for
 specifying what variables to plot, how they are displayed, and general visual
 properties. As a result, if the underlying data changes or if we decide to switch 
 from a bar plot to a scatter plot, we only have to make minimal adjustments to the 
@@ -173,7 +173,7 @@ the function.
 
 To create a chart with **`ggplot2`**, follow the steps below:
 
-1. use the `ggplot()` function and bind the plot to a specific data frame.
+1. use the `ggplot()` function and bind the plot to a specific tibble.
 ```{r ggplot-steps-1, eval=FALSE, purl=FALSE}
 data %>%
   ggplot()
@@ -304,7 +304,7 @@ if the count at that hour is *above* average and red if the count at that hour i
 *below* average!
 
 To do this, we will calculate the average hourly count and, using mutate, add a 
-column to our hourly_counts data frame that indicates whether the count at that 
+column to our hourly_counts tibble that indicates whether the count at that 
 hour is above or below the calculated average! Then, we will use the `scale_color_manual` 
 function to manually color these points green and red instead of the default (which,
 when writing this lesson, was red and blue, respectively).
@@ -448,7 +448,7 @@ data %>%
 ```
 
 Looking at this plot, from a rough estimate, it looks like there are far fewer 
-dots on the plot than there rows in our data frame. This should lead us to believe 
+dots on the plot than there rows in our tibble. This should lead us to believe 
 that there may be multiple observations plotted on top of each other (e.g. three
 observations where `hour` is 12 and `location` is LOCATION_001). This is known as 
 "overplotting" and occurs when multiple data points share the same x and y 
@@ -681,7 +681,7 @@ In some cases, we may be more interested in the *proportion* of each individual
 device at each location rather than the actual *count* of each device. Proportions 
 are helpful because they account for differences in sample sizes, and instead focus 
 on distribution within specific locations! To compare proportions, we will first 
-create a new data frame (`prop_device`) with a new column named "prop", 
+create a new tibble (`prop_device`) with a new column named "prop", 
 representing the percent of each device within each location.
 
 ```{r percent-device-data}
@@ -693,7 +693,7 @@ prop_device <- data %>%
   ungroup()
 ```
 
-Now, we can use this new data frame to create our plot showing the *proportion* 
+Now, we can use this new tibble to create our plot showing the *proportion* 
 of each device at each location! When creating your plot, ensure you include `y = prop` 
 within the initial ggplot call AND `stat = "identity"` to tell ggplot to use the 
 y values instead of the count, and adjust labels/titles for clarity: 
@@ -960,18 +960,18 @@ library(sf)
 Next, let's load in the map data containing our map polygons:
 ```{r load-got-map-data, eval=TRUE}
 #read in data and save to object
-westeros_map <- st_read(here("data", "polygons_example_GoT.geojson"), quiet = TRUE)
+westeros_map <- st_read(here("data", "polygons_GoT.geojson"), quiet = TRUE)
 
 #look at the data structure
 head(westeros_map, 3)
 ```
 
 Finally, let's load the voting data and link it to our map data using the `merge` 
-function. This function allows for two data frames to be linked based off of a
+function. This function allows for two tibbles to be linked based off of a
 specified variable (in our case, the "id"):
 ```{r load-voting-data, eval=TRUE}
 #read in data and save to object
-got_votes <- read_csv(here("data", "voting_example_GoT.csv"))
+got_votes <- read_csv(here("data", "voting_GoT.csv"))
 
 #look at the data structure
 head(got_votes)
