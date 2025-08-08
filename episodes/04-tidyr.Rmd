@@ -23,14 +23,14 @@ source: Rmd
   those formats are useful.
 - Describe the roles of variable names and their associated values when a table 
   is reshaped.
-- Reshape a data frame from long to wide format and back with the `pivot_wider` 
+- Reshape a tibble from long to wide format and back with the `pivot_wider` 
   and `pivot_longer` commands from the **`tidyr`** package.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :::::::::::::::::::::::::::::::::::::::: questions
 
-- How can I reformat a data frame to meet my needs?
+- How can I reformat a tibble to meet my needs?
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -40,8 +40,8 @@ To learn more about **`tidyr`** after the workshop, you may want to check out th
 [handy data tidying with **`tidyr`** cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf).
 
 To make sure everyone will use the same data sets for this lesson, we'll be
-reading in the updated version of the Anonymized Dataset (as created in 
-"Starting With Data"), as well as the Check-In Dataset (which we will cover at
+reading in the updated version of the Check-In Dataset (as created in 
+"Starting With Data"), as well as the Messy Dataset (which we will cover at
 the end of this lesson).
 
 ## Reading in Data
@@ -52,9 +52,9 @@ library(tidyverse)
 library(here)
 ```
 
-Next, we will read in the Anonymized Data:
+Next, we will read in the Check-In Data:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-anon_data <- read_csv(here("data", "anonymized_data_2.csv"))
+data <- read_csv(here("data", "checkin_data_2.csv"))
 ```
 
 ## Reshaping with pivot\_wider() and pivot\_longer()
@@ -77,12 +77,12 @@ data formats researchers are often interested in: "wide" and "long". This
 tutorial will help you efficiently transform your data shape, regardless of its
 original format. 
 
-First, we will explore qualities of the `anon_data` data and how they relate 
+First, we will explore qualities of the `data` data and how they relate 
 to these different types of data formats.
 
 ### Long and Wide Data Formats
 
-In `anon_data`, each row contains the values of variables associated
+In `data`, each row contains the values of variables associated
 with each record collected (each ballot instance). As you may recall from 
 "Starting With Data", it was stated that the `checkin_id` was added to provide 
 a "unique key/ID" for each individual ballot. 
@@ -91,7 +91,7 @@ Since `checkin_id` is unique to each instance, we can use this variable as an
 identifier corresponding to each of the 352112 observations.
 
 ```{r, purl=FALSE}
-anon_data %>% 
+data %>% 
   select(checkin_id) %>% 
   distinct() %>%
   nrow()
@@ -99,16 +99,16 @@ anon_data %>%
 
 As seen in the code below, for each check-in time corresponding to each device, no 
 two `checkin_id`s are the same. Thus, this format is what we call a "long" data 
-format, where each observation occupies only one row in the data frame.
+format, where each observation occupies only one row in the tibble.
 
 ```{r, purl=FALSE}
-anon_data %>%
+data %>%
   filter(location == "LOCATION_001") %>%
   select(checkin_id, checkin_time, location) %>%
   sample_n(size = 10)
 ```
 
-If you were to look at the entire `anon_data` data set, you would notice that the 
+If you were to look at the entire `data` data set, you would notice that the 
 layout/format of the data adheres to rules 1-3, where:
 
 1. each column is a variable
@@ -133,9 +133,9 @@ tools that make transitions between these layouts much simpler than you might
 think! The GIF below shows how these two formats relate to each other, and
 gives you an idea of how we can use R to shift from one format to the other.
 
-![Animation showing pivot_wider and pivot_longer functions transforming data between long and wide formats](fig/tidyr-pivot_wider_longer.gif){alt="A gif showing how long and wide dataframe layouts relate to each other."}
+![Animation showing pivot_wider and pivot_longer functions transforming data between long and wide formats](fig/tidyr-pivot_wider_longer.gif){alt="A gif showing how long and wide tibble layouts relate to each other."}
 
-Long and wide dataframe layouts mainly affect readability. You may find that
+Long and wide tibble layouts mainly affect readability. You may find that
 visually you may prefer the "wide" format, since you can see more of the data on
 the screen. However, all of the R functions we have used thus far expect for
 your data to be in a "long" data format. This is because the long format is more
@@ -144,7 +144,7 @@ machine readable and is closer to the formatting of databases.
 
 ### Questions That Warrant Different Data Formats
 
-In `anon_data`, each row contains values associated with each
+In `data`, each row contains values associated with each
 record (the unit). This may include values such as the ID of the ballot box, the 
 ballot box's location, the precinct the ballot box belongs to, or the arrival time 
 of the person submitting the ballot. This format allows for us to make comparisons 
@@ -187,15 +187,14 @@ Further arguments include `values_fill` which, if set, fills in missing values
 with the value provided, and `names_sort`, which, if set, sorts the columns in 
 alphanumerical order.
 
-Let's use `pivot_wider()` to transform `anon_data` to create new columns for each
+Let's use `pivot_wider()` to transform `data` to create new columns for each
 hour represented within the data.
 
 To help with understanding, we will be walking through the transformation line-by-line. 
 
-First we create a new object (`anon_data_tc`) based on the `anon_data` 
-tibble:
+First we create a new object (`data_tc`) based on the `data` tibble:
 ```{r, eval=FALSE}
-anon_data_tc <- anon_data %>%
+data_tc <- data %>%
 ```
 
 Our next step will be to get the values for each cell, so we will be using the 
@@ -219,7 +218,7 @@ Now that we understand what's going on, let's combine all those chunks together
 and look at what our completed tibble looks like!
 ```{r, purl=FALSE}
 #create the object
-anon_data_tc <- anon_data %>%
+data_tc <- data %>%
   #get the values
   count(location, hour) %>%
   #pivot the data
@@ -229,7 +228,7 @@ anon_data_tc <- anon_data %>%
   values_fill = 0
 )
 
-head(anon_data_tc)
+head(data_tc)
 ```
 
 Oh no! It looks like the hours columns are out of order, with 6 sitting between
@@ -242,7 +241,7 @@ function to specify that the columns should be in order. This line has been adde
 to the code block below:
 ```{r, purl=FALSE}
 #create the object
-anon_data_tc <- anon_data %>%
+data_tc <- data %>%
   #get the values
   count(location, hour) %>%
   #pivot the data
@@ -253,25 +252,25 @@ anon_data_tc <- anon_data %>%
   names_sort = TRUE #sorts the columns from left to right
 )
 
-head(anon_data_tc)
+head(data_tc)
 ```
 
 As seen by the outputted tibble above, the hour columns now appear in ascending 
 order, making the table far easier to interpret at a glance!
 
 Now that we've used `pivot_wider()` to make our data "wide", let's take a closer 
-look at the resulting `anon_data_tc` tibble to gain a better understanding.
+look at the resulting `data_tc` tibble to gain a better understanding.
 
 First, let's check the dimensions:
 ```{r, purl=FALSE}
-dim(anon_data_tc)
+dim(data_tc)
 ```
 
 As we can see, there are 417 rows and 16 columns! Each row represents a unique 
 location within the data set. We can verify this by counting the number of unique 
-location values within `anon_data`:
+location values within `data`:
 ```{r, purl=FALSE}
-n_distinct(anon_data$location)
+n_distinct(data$location)
 ```
 
 This also returns 417, confirming that each row corresponds to a single, unique 
@@ -279,7 +278,7 @@ location within the data.
 
 Next, let's look at the 16 columns of the tibble:
 ```{r, purl=FALSE}
-colnames(anon_data_tc)
+colnames(data_tc)
 ```
 
 Notice there is no longer a column titled `hour`. This is because the `pivot_wider()` 
@@ -293,7 +292,7 @@ showing the number of check-ins across all locations at a particular time, with
 the rows being ordered from highest to lowest in terms of count:
 
 ```{r, purl=FALSE}
-anon_data_tc %>%
+data_tc %>%
   select(location, `7`) %>%
   arrange(desc(`7`))
 ```
@@ -301,8 +300,8 @@ anon_data_tc %>%
 Or, we can calculate the total amount of check-ins for each location across all 
 hours, and sort the data to determine which location had the least check-ins:
 ```{r, purl=FALSE}
-anon_data_tc %>%
-  mutate(total_checkins = rowSums(anon_data_tc[-1])) %>%
+data_tc %>%
+  mutate(total_checkins = rowSums(data_tc[-1])) %>%
   select(location, total_checkins) %>%
   arrange(total_checkins)
 ```
@@ -311,22 +310,22 @@ anon_data_tc %>%
 
 ## Exercise
 
-We created `anon_data_tc` by reshaping the data. Replicate this process
-to create a tibble named `anon_data_total` that shows the total number of 
+We created `data_tc` by reshaping the data. Replicate this process
+to create a tibble named `data_total` that shows the total number of 
 check-ins for each hour, across all locations.
 
 The resulting tibble should have columns for each hour, sorted from earliest to 
-latest similarly to the `anon_data_tc` tibble. There should only be one 
+latest similarly to the `data_tc` tibble. There should only be one 
 row, representative of all locations, and an extra summary column, called 
 `total_checkins`, that calculates the total number of check ins across the entire 
-`anon_data` data set.
+`data` data set.
 
 :::::::::::::::  solution
 
 ## Solution
 
 ```{r}
-anon_data_total <- anon_data %>%
+data_total <- data %>%
   count(hour) %>%
   pivot_wider(
     names_from = hour,
@@ -336,10 +335,10 @@ anon_data_total <- anon_data %>%
     ) %>%
   mutate(total_checkins = rowSums(across(everything())))
 
-anon_data_total
+data_total
 
 #alternative solution:
-anon_data_total_2 <- anon_data %>%
+data_total_2 <- data %>%
   count(hour) %>%
   pivot_wider(
     names_from = hour,
@@ -348,10 +347,10 @@ anon_data_total_2 <- anon_data %>%
     names_sort = TRUE
     )
 
-anon_data_total_2 <- anon_data_total_2 %>%
-  mutate(total_checkins = rowSums(anon_data_total_2))
+data_total_2 <- data_total_2 %>%
+  mutate(total_checkins = rowSums(data_total_2))
 
-anon_data_total_2
+data_total_2
 ```
 
 :::::::::::::::::::::::::
@@ -361,7 +360,7 @@ anon_data_total_2
 
 ## Pivoting Longer
 
-The opposing situation could occur if we had been provided with the `anon_data_tc`
+The opposing situation could occur if we had been provided with the `data_tc`
 tibble, but instead of treating each hour as an individual column, we instead wish 
 to treat them as values of a variable instead.
 
@@ -381,7 +380,7 @@ column names (`checkin_count`)!
 
 
 ```{r, purl=FALSE}
-anon_data_tc_long <- anon_data_tc %>%
+data_tc_long <- data_tc %>%
   pivot_longer(cols = `6`:`20`,
                names_to = "checkin_hour",
                values_to = "checkin_count")
@@ -389,11 +388,11 @@ anon_data_tc_long <- anon_data_tc %>%
 
 Below, we will look at the two tibbles and compare their structures:
 ```{r, purl=FALSE}
-head(anon_data_tc)
+head(data_tc)
 ```
 
 ```{r, purl=FALSE}
-head(anon_data_tc_long)
+head(data_tc_long)
 ```
 
 As you can see, the hours and their corresponding counts for each location are 
@@ -404,10 +403,10 @@ for every hour -- rather than appearing just once, as in a wide-table format.
 
 ## Exercise
 
-In the last exercise, you created the wide tibble, `anon_data_total`. In this 
+In the last exercise, you created the wide tibble, `data_total`. In this 
 exercise, your goal is to reverse this transformation using `pivot_longer()`.
 
-Create a tibble called `anon_data_total_long` that has two columns: one for the 
+Create a tibble called `data_total_long` that has two columns: one for the 
 hour, and one for the corresponding check-in count. During your transformation, 
 remove the `total_checkins` column.
 
@@ -416,7 +415,7 @@ remove the `total_checkins` column.
 ## Solution
 
 ```{r}
-anon_data_total_long <- anon_data_total %>%
+data_total_long <- data_total %>%
   select(-total_checkins) %>%
   pivot_longer(
     cols = everything(),
@@ -424,7 +423,7 @@ anon_data_total_long <- anon_data_total %>%
     values_to = "checkin_count"
   )
 
-anon_data_total_long
+data_total_long
 ```
 
 :::::::::::::::::::::::::
@@ -494,9 +493,9 @@ tibble(location = c("A", "B", "B"), hour = c(3, 1, 2)) %>%
 
 ## Applying What We Learned to Clean Data
 
-### Introduction to the Check-In Dataset
+### Introduction to the Messy Dataset
 
-The Check-In Dataset is an example of a "messy" data set that tracks when 
+The Messy Dataset is an example of a "messy" data set that tracks when 
 people check-in to a voting location! In the context of the data set, labels 
 ("provisional", "assistance", and "provisional and assistance") are used to 
 explain why check-in times may be longer than average. If a check-in does not 
@@ -518,10 +517,7 @@ R to automatically convert all the "NULL" entries in the data set into `NA`.
 
 Below, we will be reading in the Check-In Dataset using the additional line:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data <- read_csv(
-                   here("episodes", "data", "checkin_data.csv"),
-                   na = "NULL"
-                )
+messy_data <- read_csv(here("episodes", "data", "messy_data.csv"), na = "NULL")
 ```
 
 
@@ -531,7 +527,7 @@ Data step-by-step to ensure understanding throughout!
 
 We'll start by looking at the data so we can understand what we're working with:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data
+messy_data
 ```
 
 At first glance, we can see this data set is wide, with each label tacked onto 
@@ -541,15 +537,15 @@ is likely representative of the normal check-ins!
 
 However, looking at how many missing values there are, it may be a better choice 
 to turn the data into "long" data, instead of "wide" data, with a `duration` column, 
-and a `label` column. Let's apply this pivot to a new tibble, named `checkin_data_clean`, 
+and a `label` column. Let's apply this pivot to a new tibble, named `clean_data`, 
 below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean <- checkin_data %>%
+clean_data <- checkin_data %>%
   pivot_longer(cols = everything(),
                names_to = "label",
                values_to = "duration")
 
-head(checkin_data_clean)
+head(clean_data)
 ```
 
 Oh no! That's a lot of `NA` values. Taking a closer look at the original data, 
@@ -561,29 +557,29 @@ data set, we can see the labels that do not apply to this duration are listed as
 Since the labels that have a duration of `NA` do not matter within our data set, 
 we can drop them from the tibble completely:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean <- checkin_data_clean %>%
+clean_data <- clean_data %>%
   drop_na()
 
-head(checkin_data_clean)
+head(clean_data)
 ```
 
 Now we're getting somewhere! Next, when we loaded in the data set, it was noted that
 underscores replaced spaces throughout the data. As seen below, the next step is 
 to revert that change:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean <- checkin_data_clean %>%
+clean_data <- clean_data %>%
   mutate(label = gsub("_", " ", label))
 
-head(checkin_data_clean)
+head(clean_data)
 ```
 
 Our next step is removing the "CheckIn Duration " phrase from each label, which 
 we will be completing below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean <- checkin_data_clean %>%
+clean_data <- clean_data %>%
   mutate(label = gsub("CheckIn Duration ", "", label))
 
-head(checkin_data_clean)
+head(clean_data)
 ```
 
 After removing the "CheckIn Duration " prefix, we can see that some of our labels 
@@ -591,16 +587,16 @@ are now an empty strings. However, as you may recall from our initial analysis
 of the data, empty labels indicate that the check-in was normal! So, our next 
 step will be replacing the empty labels with "Normal" labels:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean <- checkin_data_clean %>%
+clean_data <- clean_data %>%
   mutate(label = ifelse(label == "", "Normal", label))
 
-head(checkin_data_clean)
+head(clean_data)
 ```
 
 Now, our data is clean! In practice, all of these functions can (and should!) be 
 chained together using pipes (and comments), as seen in the code block below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-checkin_data_clean_2 <- checkin_data %>%
+clean_data_final <- checkin_data %>%
   #pivot longer by label
   pivot_longer(cols = everything(),
                names_to = "label",
@@ -614,20 +610,20 @@ checkin_data_clean_2 <- checkin_data %>%
   #replace empty labels with "Normal"
   mutate(label = ifelse(label == "", "Normal", label))
   
-head(checkin_data_clean_2)
+head(clean_data_final)
 ```
 
-Since our data has been cleaned, we can now export it as `checkin_clean.csv` for 
+Since our data has been cleaned, we can now export it as `clean_data.csv` for 
 use in future analysis. As you may recall from "Starting with Data", we will be 
 using the `write_csv()` function, specifying that we want our csv to go into our 
 data folder:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-write_csv(checkin_data_clean, "data/checkin_clean.csv")
+write_csv(clean_data_final, "data/clean_data.csv")
 ```
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
 
-- Use the `tidyr` package to change the layout of data frames.
+- Use the `tidyr` package to change the layout of tibbles.
 - Use `pivot_wider()` to go from long to wide format.
 - Use `pivot_longer()` to go from wide to long format.
 
