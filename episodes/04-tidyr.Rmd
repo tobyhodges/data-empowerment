@@ -517,7 +517,7 @@ R to automatically convert all the "NULL" entries in the data set into `NA`.
 
 Below, we will be reading in the Check-In Dataset using the additional line:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-messy_data <- read_csv(here("episodes", "data", "messy_data.csv"), na = "NULL")
+messy_data <- read_csv(here("data", "messy_data.csv"), na = "NULL")
 ```
 
 
@@ -540,7 +540,7 @@ to turn the data into "long" data, instead of "wide" data, with a `duration` col
 and a `label` column. Let's apply this pivot to a new tibble, named `clean_data`, 
 below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-clean_data <- checkin_data %>%
+clean_data <- messy_data %>%
   pivot_longer(cols = everything(),
                names_to = "label",
                values_to = "duration")
@@ -568,7 +568,8 @@ underscores replaced spaces throughout the data. As seen below, the next step is
 to revert that change:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
 clean_data <- clean_data %>%
-  mutate(label = gsub("_", " ", label))
+  #including "all" in the str replace call ensures both underscores are replaced
+  mutate(label = str_replace_all(label, "_", " "))
 
 head(clean_data)
 ```
@@ -577,7 +578,7 @@ Our next step is removing the "CheckIn Duration " phrase from each label, which
 we will be completing below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
 clean_data <- clean_data %>%
-  mutate(label = gsub("CheckIn Duration ", "", label))
+  mutate(label = str_remove(label, "CheckIn Duration "))
 
 head(clean_data)
 ```
@@ -596,7 +597,7 @@ head(clean_data)
 Now, our data is clean! In practice, all of these functions can (and should!) be 
 chained together using pipes (and comments), as seen in the code block below:
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-clean_data_final <- checkin_data %>%
+clean_data_final <- messy_data %>%
   #pivot longer by label
   pivot_longer(cols = everything(),
                names_to = "label",
@@ -604,9 +605,9 @@ clean_data_final <- checkin_data %>%
   #remove rows with missing values
   drop_na() %>%
   #replace underscores with spaces
-  mutate(label = gsub("_", " ", label)) %>%
+  mutate(label = str_replace_all(label, "_", " ")) %>%
   #remove "CheckIn Duration " from each label
-  mutate(label = gsub("CheckIn Duration ", "", label)) %>%
+  mutate(label = str_remove(label, "CheckIn Duration ")) %>%
   #replace empty labels with "Normal"
   mutate(label = ifelse(label == "", "Normal", label))
   
