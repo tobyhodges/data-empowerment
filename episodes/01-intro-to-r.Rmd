@@ -47,7 +47,7 @@ source: Rmd
 
 You can get output from R simply by typing math in the console:
 
-```{r, purl=FALSE}
+```{r basic-math, purl=FALSE}
 3 + 5
 12 / 7
 ```
@@ -56,8 +56,8 @@ Everything that exists in `R` is an objects: from simple numerical values, to st
 
 However, to do useful and interesting things, we need to name objects. To do so, we need to give a *name* followed by the assignment operator `<-`, and the *object* we want to be named:
 
-```{r, purl=FALSE}
-area_hectares <- 1.0
+```{r var-intro, purl=FALSE}
+num_precincts <- 5
 ```
 
 `<-` is the assignment operator. It assigns values (objects) on the right to names (also called *symbols*) on
@@ -89,12 +89,12 @@ avoid dots (`.`) within an object name as in `my.dataset`. There are many
 objects in R with dots in their names for historical reasons, but because dots
 have a special meaning in R (for methods) and other programming languages, it's
 best to avoid them. The recommended writing style is called snake\_case, which
-implies using only lowercaseletters and numbers and separating each word with
-underscores (e.g., animals\_weight, average\_income). It is also recommended to use nouns for object names, and
-verbs for function names. It's important to be consistent in the styling of your
-code (where you put spaces, how you name objects, etc.). Using a consistent
-coding style makes your code clearer to read for your future self and your
-collaborators. In R, three popular style guides are
+implies using only lowercase letters and numbers and separating each word with
+underscores (e.g., animals\_weight, average\_income). It is also recommended to 
+use nouns for object names, and verbs for function names. It's important to be 
+consistent in the styling of your code (where you put spaces, how you name objects, 
+etc.). Using a consistent coding style makes your code clearer to read for your 
+future self and yourcollaborators. In R, three popular style guides are
 [Google's](https://google.github.io/styleguide/Rguide.xml), [Jean
 Fan's](https://jef.works/R-style-guide/) and the
 [tidyverse's](https://style.tidyverse.org/). The tidyverse's is very
@@ -119,54 +119,49 @@ When assigning an value to a name, R does not print anything. You
 can force R to print the value by using parentheses or by typing
 the object name:
 
-```{r, purl=FALSE}
-area_hectares <- 1.0    # doesn't print anything
-(area_hectares <- 1.0)  # putting parenthesis around the call prints the value of `area_hectares`
-area_hectares         # and so does typing the name of the object
+```{r var-print, purl=FALSE}
+num_precincts <- 5    # doesn't print anything
+(num_precincts <- 5)  # putting parenthesis around the call prints the value of `area_hectares`
+num_precincts         # and so does typing the name of the object
 ```
 
-Now that R has `area_hectares` in memory, we can do arithmetic with it. For
-instance, we may want to convert this area into acres (area in acres is 2.47 times the area in hectares):
-
-```{r, purl=FALSE}
-2.47 * area_hectares
+Now that R has `num_precincts` in memory, we can do arithmetic with it. For
+instance, we may want to calculate the number of registered voters (assuming 
+there are 1500 voters per precinct):
+```{r var-mult, purl=FALSE}
+1500 * num_precincts
 ```
 
 We can also change an the value assigned to an name by assigning it a new one:
-
-```{r, purl=FALSE}
-area_hectares <- 2.5
-2.47 * area_hectares
+```{r var-change, purl=FALSE}
+num_precincts <- 10
+1500 * num_precincts
 ```
 
 This means that assigning a value to one name does not change the values of
-other names. For example, let's name the plot's area in acres
-`area_acres`:
-
-```{r, purl=FALSE}
-area_acres <- 2.47 * area_hectares
+other names. For example, let's name the number of voters `num_voters`:
+```{r var-mult-2, purl=FALSE}
+num_voters <- 1500 * num_precincts
 ```
 
-and then change (reassign) `area_hectares` to 50.
-
-```{r, purl=FALSE}
-area_hectares <- 50
+Next, let's change (reassign) `num_precincts` to 50:
+```{r var-change-2,  purl=FALSE}
+num_precincts <- 50
 ```
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
 ## Exercise
 
-What do you think is the current value of `area_acres`? 123.5 or
-6\.175?
+What do you think is the current value of `num_voters`? 15000 or 75000?
 
 :::::::::::::::  solution
 
 ## Solution
 
-The value of `area_acres` is still 6.175 because you have not
-re-run the line `area_acres <- 2.47 * area_hectares` since
-changing the value of `area_hectares`.
+The value of `num_voters` is still 15000. This is because you have not
+re-run the line `num_voters <- 1500 * num_precincts` since
+changing the value of `num_precincts`.
 
 :::::::::::::::::::::::::
 
@@ -180,10 +175,10 @@ To do this in R we use the `#` character.
 Anything to the right of the `#` sign and up to the end of the line is treated as a comment and is ignored by R. You can start lines with comments
 or include them after any code on the line.
 
-```{r}
-area_hectares <- 1.0			# land area in hectares
-area_acres <- area_hectares * 2.47	# convert to acres
-area_acres				# print land area in acres.
+```{r comments}
+num_precincts <- 10			#number of precincts
+num_voters <- 1500 * num_precincts	#calculate the total number of voters
+num_voters				#print the total number of voters
 ```
 
 RStudio makes it easy to comment or uncomment a paragraph: after selecting the
@@ -197,29 +192,35 @@ to select the whole line), then press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +
 
 ## Exercise
 
-1. Create two variables `r_length` and `r_width` and assign them values.
-   * Note that `length` is a built-in R function, so R Studio might add "()" after you type it
-   * If you leave the parentheses, you'll get unexpected results
-   * This is why programmers often abbreviate common words
+1. Create two variables `ballot_cost` and `ballots_needed` and assign them values.
 
-2. Create a third variable `r_area` and give it a value based on the current values of `r_length` and `r_width`.
+2. Create a third variable `total_cost` and give it a value based on the current 
+   values of `ballot_cost` and `ballots_needed`.
 
-3. Show that changing the values of either `r_length` and `r_width` does not affect the value of `r_area`.
+3. Show that changing the values of either `ballot_cost` and `ballots_needed` does 
+   not affect the value of `total_cost`.
 
 :::::::::::::::  solution
 
 ## Solution
 
-```{r}
-r_length <- 2.5
-r_width <- 3.2
-r_area <- r_length * r_width
-r_area
-# change the values of r_length and r_width
-r_length <- 7.0
-r_width <- 6.5
-# the value of r_area isn't changed
-r_area
+```{r solution-1}
+#set the values of ballot_cost and ballots_needed
+ballot_cost <- 0.0125
+ballots_needed <- 2250
+
+#give total_cost a value
+total_cost <- ballot_cost * ballots_needed
+
+#print current value of total_cost
+total_cost
+
+#change the values of ballot_cost and ballots_needed
+ballot_cost <- 0.068
+ballots_needed <- 3000
+
+#display the value of total_cost isn't changed
+total_cost
 ```
 
 :::::::::::::::::::::::::
@@ -237,7 +238,7 @@ input (the argument) must be a number, and the return value (in fact, the
 output) is the square root of that number. Executing a function ('running it')
 is called *calling* the function. An example of a function call is:
 
-```{r, eval=FALSE, purl=FALSE}
+```{r sqrt, eval=FALSE, purl=FALSE}
 b <- sqrt(a)
 ```
 
@@ -247,9 +248,9 @@ the name `b`. This function is very simple, because it takes just one argument.
 
 The return 'value' of a function need not be numerical (like that of `sqrt()`),
 and it also does not need to be a single item: it can be a set of things, or
-even a dataset. We'll see that when we read data files into R.
+even a data set. We'll see that when we read data files into R.
 
-Arguments can be anything, not only numbers or filenames, but also other
+Arguments can be anything, not only numbers or file names, but also other
 objects. Exactly what each argument means differs per function, and must be
 looked up in the documentation (see below). Some functions take arguments which
 may either be specified by the user, or, if left out, take on a *default* value:
@@ -258,23 +259,23 @@ function operates, such as whether it ignores 'bad values', or what symbol to
 use in a plot.  However, if you want something specific, you can specify a value
 of your choice which will be used instead of the default.
 
-Let's try a function that can take multiple arguments: `round()`.
-
-```{r, results="show", purl=FALSE}
-round(3.14159)
+Using the total_cost we calculated above, let's try a function that can take multiple 
+arguments: `round()`.
+```{r round, results="show", purl=FALSE}
+round(total_cost)
 ```
 
-Here, we've called `round()` with just one argument, `3.14159`, and it has
-returned the value `3`.  That's because the default is to round to the nearest
+Here, we've called `round()` with just one argument, `total_cost`, and it has
+returned the value `28`.  That's because the default is to round to the nearest
 whole number. If we want more digits we can see how to do that by getting
 information about the `round` function.  We can use `args(round)` or look at the
 help for this function using `?round`.
 
-```{r, results="show", purl=FALSE}
+```{r round-args, results="show", purl=FALSE}
 args(round)
 ```
 
-```{r, eval=FALSE, purl=FALSE}
+```{r round-help, eval=FALSE, purl=FALSE}
 ?round
 ```
 
@@ -282,20 +283,19 @@ We see that if we want a different number of digits, we can
 type `digits=2` or however many we want.
 
 ```{r, results="show", purl=FALSE}
-round(3.14159, digits = 2)
+round(total_cost, digits = 2)
 ```
 
 If you provide the arguments in the exact same order as they are defined you
 don't have to name them:
 
 ```{r, results="show", purl=FALSE}
-round(3.14159, 2)
+round(total_cost, 2)
 ```
 
 And if you do name the arguments, you can switch their order:
-
 ```{r, results="show", purl=FALSE}
-round(digits = 2, x = 3.14159)
+round(digits = 2, x = total_cost)
 ```
 
 It's good practice to put the non-optional arguments (like the number you're
@@ -308,28 +308,29 @@ doing.
 
 ## Exercise
 
-Type in `?round` at the console and then look at the output in the Help pane.
-What other functions exist that are similar to `round`?
-How do you use the `digits` parameter in the round function?
+As you may have noticed, in both cases of rounding, the total_cost rounded down. 
+However, when calculating the total cost of something, you should always round UP 
+to the nearest dollar or cent. 
+
+For this exercise, type in `?round` at the console and then look at the output 
+in the Help panel. What other function similar to `round` should be used instead? 
+Apply this function to round up to the nearest *dollar*.
+
+Bonus: apply this function to round to the nearest *cent*.
 
 :::::::::::::::  solution
 
 ## Solution
 
-Looking at the help for `?round` shows several related functions:
-- `ceiling`: rounds up to the nearest integer
-- `floor`: rounds down to the nearest integer 
-- `trunc`: truncates numbers by removing decimal places
-- `signif`: rounds to a specified number of significant digits
-
-The `digits` parameter in the `round` function specifies the number of decimal places to round to. For example:
-
-```{r}
-round(3.14159, digits = 2)  # Rounds to 2 decimal places: 3.14
-round(3.14159, digits = 0)  # Rounds to 0 decimal places: 3
-round(1234.56, digits = -1) # Negative digits round left of the decimal: 1230
+The `ceiling` function rounds up to the nearest integer! 
+```{r solution-2a}
+ceiling(total_cost)
 ```
 
+To use the function to round to the nearest cent, you can do the following:
+```{r solution-2b}
+ceiling(total_cost * 100) / 100
+```
 :::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -340,80 +341,156 @@ round(1234.56, digits = -1) # Negative digits round left of the decimal: 1230
 A vector is the most common and basic data type in R, and is pretty much
 the workhorse of R. A vector is composed by a series of values, which can be
 either numbers, characters, or other data types. We can assign a series of values to a vector using
-the `c()` function. For example, we can create a vector of check-in ID strings, and 
-we can create another vector storing numbers of votes at different locations.
+the `c()` function. For example, we can create a vector of job type strings, and 
+we can create another vector storing numbers of votes at different precincts
 
-```{r, purl=FALSE}
-checkin_ids <- c("CHECKIN_000001", "CHECKIN_000002", "CHECKIN_000003")
-checkin_ids
+```{r vectors, purl=FALSE}
+votes_per_precinct <- c(1000, 4300, 2340, 7190)
+votes_per_precinct
 
-vote_counts <- c(1000, 4300, 2340, 7190)
-vote_counts
+job_types <- c("check-in", "check-out", "supervisor")
+job_types
 ```
 
-The quotes around "CHECKIN_000001", etc. are essential here. Without the quotes, R
-will assume there are objects called `CHECKIN_000001`, `CHECKIN_000002`, and `CHECKIN_000003`. As these names
-don't exist in R's memory, there will be an error message.
+The quotes around "check-in", "check-out", and "supervisor"are essential here. 
+Without the quotes, R will assume there are objects called `check-in`, `check-out`, 
+and `supervisor`. Since these names don't exist in R's memory, there will be an 
+error message.
 
+Additionally, you may notice there are no commas in-between the thousands. In R, 
+you *cannot* add commas in numbers, as R will assume they are separate items in 
+the list.
 
 There are many functions that allow you to inspect the content of a
 vector. `length()` tells you how many elements are in a particular vector:
-
-```{r, purl=FALSE}
-length(checkin_ids)
+```{r vec-length, purl=FALSE}
+length(votes_per_precinct)
 ```
 
 An important feature of a vector is that all of the elements are the same type of data.
 The function `typeof()` indicates the type of an object:
-
-```{r, purl=FALSE}
-typeof(checkin_ids)
+```{r vec-type, purl=FALSE}
+typeof(votes_per_precinct)
 ```
 
 The function `str()` provides an overview of the structure of an object and its
 elements. It is a useful function when working with large and complex
 objects:
-
-```{r, purl=FALSE}
-str(checkin_ids)
+```{r vec-str, purl=FALSE}
+str(votes_per_precinct)
 ```
 
 You can use the `c()` function to add other elements to your vector:
-
-```{r, purl=FALSE}
-devices <- c("DEVICE_001", "DEVICE_002")
-devices <- c(devices, "DEVICE_003") # add to the end of the vector
-devices <- c("DEVICE_000", devices) # add to the beginning of the vector
-devices
+```{r vec-add, purl=FALSE}
+devices_per_precinct <- c(5, 2)
+devices_per_precinct <- c(devices_per_precinct, 9) # add to the end of the vector
+devices_per_precinct <- c(6, devices_per_precinct) # add to the beginning of the vector
+devices_per_precinct
 ```
 
-In the first line, we take the original vector `devices`,
-add the value `"DEVICE_003"` to the end of it, and save the result back into
-`devices`. Then we add the value `"DEVICE_000"` to the beginning, again saving the result
-back into `devices`.
+In the first line, we take the original vector `devices_per_precinct`, add the 
+value `9` to the end of it, and save the result back into `devices_per_precinct`. 
+Then we add the value `6` to the beginning, again saving the result back 
+into `devices_per_precinct`.
 
-We can do this over and over again to grow a vector, or assemble a dataset.
+We can do this over and over again to grow a vector, or assemble a data set.
 As we program, this may be useful to add results that we are collecting or
 calculating.
 
-An **atomic vector** is the simplest R **data type** and is a linear vector of a single type. Above, we saw
-2 of the 6 main **atomic vector** types  that R
-uses: `"character"` and `"numeric"` (or `"double"`). These are the basic building blocks that
-all R objects are built from. The other 4 **atomic vector** types are:
+An **atomic vector** is the simplest R **data type** and is a linear vector of a
+single type. Above, we saw 2 of the 6 main **atomic vector** types that R uses: 
+`"character"` and `"numeric"` (or `"double"`). These are the basic building blocks 
+that all R objects are built from. The other 4 **atomic vector** types are:
 
 - `"logical"` for `TRUE` and `FALSE` (the boolean data type)
 - `"integer"` for integer numbers (e.g., `2L`, the `L` indicates to R that it's an integer)
 - `"complex"` to represent complex numbers with real and imaginary parts (e.g.,
   `1 + 4i`) and that's all we're going to say about them
-- `"raw"` for bitstreams that we won't discuss further
+- `"raw"` for bit-streams (we won't be discussing this further)
 
-You can check the type of your vector using the `typeof()` function and inputting your vector as the argument.
+### Date Types
+
+Dates are a common data type that require special attention. In R, dates can be represented in two ways:
+
+1. As character strings (e.g., "2018-11-06 07:02:36", "11/06/2018 07:02:36")
+2. As Date or POSIXct objects which are special data types for dates and times
+
+When dates are stored as strings, they're treated like any other text:
+```{r dates-str}
+checkin_times_as_strings <- c("2018-11-06 07:02:36", "2018-11-06 07:04:09", "2018-11-06 07:05:45")
+typeof(checkin_times_as_strings)
+```
+
+However, storing dates as proper Date or POSIXct objects offers several advantages:
+- You can perform arithmetic with dates (calculate time differences)
+- You can extract components like month, year, or day
+- You can easily format dates for display
+- You can sort dates chronologically
+
+
+To convert strings to Date or POSIXct objects, use the `as.POSIXct()` function:
+```{r dates-convert}
+#convert strings to POSIXct objects
+checkin_times <- as.POSIXct(checkin_times_as_strings, format = "%Y-%m-%d %H:%M:%S")
+typeof(checkin_times)
+class(checkin_times)
+```
+
+The following "leap year" scenario highlights the importance of using proper date 
+types. Consider the following example:
+```{r leap-example-bad}
+#BAD: using strings for date arithmetic
+date_start <- "2020-02-28"
+date_end <- "2020-03-01"
+
+#attempt to calculate the difference by converting strings to numeric days
+#here we use substr to extract the day portion in string format.
+#it draws the characters at position 9 to 10 and converts them to numeric
+difference_wrong <- as.numeric(substr(date_end, 9, 10)) - as.numeric(substr(date_start, 9, 10))
+difference_wrong #incorrect!
+```
+
+In this example, we extract the day portion of the dates as strings and subtract them. While this works for simple cases, it fails to account for:
+- The transition between months (e.g., February to March).
+- Leap years (e.g., February 29 in 2020).
+
+Now, compare this with proper date types:
+```{r leap-example-good}
+#GOOD: using Date for leap year handling
+date_start_correct <- as.Date(date_start)
+date_end_correct <- as.Date(date_end)
+
+difference_correct <- as.numeric(date_end_correct - date_start_correct)
+difference_correct #correctly computes 2 days, accounting for February 29 in the leap year
+```
+
+Now, the number of days has been calculated properly!
+
+It's important to note that Date objects and POSIXct objects are not made equal 
+and, while we used the two types interchangeably above, you should ensure you choose
+the one that fits your data needs. The key differences between Date objects and 
+POSIXct objects can be seen below:
+- Date:
+  - Represents dates without time.
+  - Useful for operations where time is irrelevant (e.g., calculating the number of days between two dates).
+  - Stored as the number of days since January 1, 1970.
+- `POSIXct:
+  - Represents both date and time.
+  - Useful for operations involving time (e.g., calculating the number of seconds or hours between two timestamps).
+  - Stored as the number of seconds since January 1, 1970.
+  
+Using proper date types ensures that leap years and other calendar-specific rules 
+are handled correctly, making computations accurate and reliable.
+
 
 ### Coercion
 
-An important characteristic of vectors is that they can only contain elements of the same data type. If you attempt to combine different types in a vector, R will automatically convert them to a single, common type - a process called "coercion". This follows a hierarchy: logical → integer → numeric → character.
+An important characteristic of vectors is that they can only contain elements of 
+the same data type. If you attempt to combine different types in a vector, R will 
+automatically convert them to a single, common type - a process called "coercion". 
+This follows a hierarchy: character > numeric (double) > integer > logical.
 
-```{r}
+```{r vec-coercion}
 # Coercion examples
 num_logical <- c(1, TRUE) # TRUE converted to 1
 typeof(num_logical)
@@ -428,7 +505,12 @@ tricky <- c(1, "2", TRUE) # Everything becomes character
 typeof(tricky)
 ```
 
-R will always try to find a common data type that doesn't lose information. Typically, this means converting toward the more flexible type (with character being the most flexible).
+R will always try to find a common data type that doesn't lose information. Typically,
+this means converting toward the more flexible type (with character being the most 
+flexible). 
+
+Note: Date/POSIXct will always be treated as "numeric" (days/seconds since 
+January 1st, 1970) when being coerced within a vector!
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 
@@ -450,7 +532,7 @@ R will always try to find a common data type that doesn't lose information. Typi
 1. The vector `c(1.1, 2L, TRUE, "a")` will have type "character" because character is the most flexible data type.
 
 2. The vector would be:
-```{r}
+```{r solution-3}
 mixed <- c(5, FALSE, "data")
 typeof(mixed)
 ```
@@ -465,168 +547,50 @@ Vectors are one of the many **data structures** that R uses. Other important
 ones are lists (`list`), matrices (`matrix`), data frames (`data.frame`), tibbles 
 (`tbl`), factors (`factor`) and arrays (`array`).
 
-### Working with Dates
-
-Dates are a common data type that require special attention. In R, dates can be represented in two ways:
-
-1. As character strings (e.g., "2018-11-06 07:02:36", "11/06/2018 07:02:36")
-2. As Date or POSIXct objects which are special data types for dates and times
-
-When dates are stored as strings, they're treated like any other text:
-
-```{r}
-checkin_times_as_strings <- c("2018-11-06 07:02:36", "2018-11-06 07:04:09", "2018-11-06 07:05:45")
-typeof(checkin_times_as_strings)
-```
-
-However, storing dates as proper Date or POSIXct objects offers several advantages:
-- You can perform arithmetic with dates (calculate time differences)
-- You can extract components like month, year, or day
-- You can easily format dates for display
-- You can sort dates chronologically
-
-To convert strings to Date or POSIXct objects, use the `as.POSIXct()` function:
-
-```{r}
-# Convert strings to POSIXct objects
-checkin_times <- as.POSIXct(checkin_times_as_strings, format = "%Y-%m-%d %H:%M:%S")
-typeof(checkin_times)
-class(checkin_times)
-```
-
-#### Example: Bad Usage of Dates via Strings
-
-If dates are stored as strings, computations can lead to incorrect results. For example:
-
-```{r}
-# Bad example: Using strings for date comparison
-checkin_times_as_strings <- c("2018-11-06 07:02:36", "2018-11-06 07:04:09", "2018-11-06 07:05:45")
-max(checkin_times_as_strings) - min(checkin_times_as_strings) # Incorrect computation
-```
-
-This will throw an error or produce nonsensical results because subtraction is not defined for strings.
-
-Now, compare this with proper date types:
-
-```{r}
-# Correct example: Using POSIXct for date comparison
-checkin_times <- as.POSIXct(checkin_times_as_strings, format = "%Y-%m-%d %H:%M:%S")
-time_difference <- max(checkin_times) - min(checkin_times)
-time_difference # Correct computation in seconds
-```
-
-Using proper date types ensures that computations like time differences are accurate and meaningful.
-
-#### Example: Leap Year Scenario
-
-A leap year scenario highlights the importance of using proper date types. Consider the following example:
-
-```{r}
-# Bad example: Using strings for date arithmetic
-date_start <- "2020-02-28"
-date_end <- "2020-03-01"
-
-# Attempt to calculate the difference by converting strings to numeric days
-# Here we use substr to extract the day portion in string format.
-# It draws the characters at position 9 to 10 and converts them to numeric.
-difference_wrong <- as.numeric(substr(date_end, 9, 10)) - as.numeric(substr(date_start, 9, 10))
-difference_wrong # Incorrect computation: Ignores months and leap years
-```
-
-In this example, we extract the day portion of the dates as strings and subtract them. While this works for simple cases, it fails to account for:
-- The transition between months (e.g., February to March).
-- Leap years (e.g., February 29 in 2020).
-
-Now, compare this with proper date types:
-
-```{r}
-# Correct example: Using Date for leap year handling
-date_start_correct <- as.Date(date_start)
-date_end_correct <- as.Date(date_end)
-
-difference_correct <- as.numeric(date_end_correct - date_start_correct)
-difference_correct # Correctly computes 2 days, accounting for February 29 in the leap year
-```
-
-Using proper date types ensures that leap years and other calendar-specific rules are handled correctly, making computations accurate and reliable.
-
-#### Key Differences Between `Date` and `POSIXct`
-
-- **`Date`**:
-  - Represents dates without time.
-  - Useful for operations where time is irrelevant (e.g., calculating the number of days between two dates).
-  - Stored as the number of days since January 1, 1970.
-
-- **`POSIXct`**:
-  - Represents both date and time.
-  - Useful for operations involving time (e.g., calculating the number of seconds or hours between two timestamps).
-  - Stored as the number of seconds since January 1, 1970.
-
-Example:
-
-```{r}
-# Date example
-date_only <- as.Date("2023-11-15")
-typeof(date_only)
-class(date_only)
-
-# POSIXct example
-date_with_time <- as.POSIXct("2023-11-15 14:30:00", format = "%Y-%m-%d %H:%M:%S")
-typeof(date_with_time)
-class(date_with_time)
-```
-
-By understanding the differences, you can choose the appropriate type for your use case.
 
 ## Subsetting vectors
 
-Subsetting (sometimes referred to as extracting or indexing) involves accessing one or more values based on their numeric placement or "index" within a vector. If we want to subset one or several values from a vector, we must provide one index or several indices in square brackets. For instance:
-
-```{r, results="show", purl=FALSE}
-checkin_ids <- c("CHECKIN_000001", "CHECKIN_000002", "CHECKIN_000003")
-checkin_ids[2]
-checkin_ids[c(3, 2)]
+Subsetting (sometimes referred to as extracting or indexing) involves accessing 
+one or more values based on their numeric placement or "index" within a vector. 
+If we want to subset one or several values from a vector, we must provide one 
+index or several indices in square brackets. For instance:
+```{r subsetting, results="show", purl=FALSE}
+job_types <- c("check-in", "check-out", "supervisor")
+job_types[2]
+job_types[c(3, 2)]
 ```
 
 We can also repeat the indices to create an object with more elements than the
 original one:
-
-```{r, results="show", purl=FALSE}
-more_checkin_ids <- checkin_ids[c(1, 2, 3, 2, 1, 3)]
-more_checkin_ids
+```{r subsetting-more, results="show", purl=FALSE}
+more_jobs <- job_types[c(1, 2, 3, 2, 1, 3)]
+more_jobs
 ```
-
-R indices start at 1. Programming languages like Fortran, MATLAB, Julia, and R
-start counting at 1, because that's what human beings typically do. Languages in
-the C family (including C++, Java, Perl, and Python) count from 0 because that's
-simpler for computers to do.
 
 ### Conditional subsetting
 
 Another common way of subsetting is by using a logical vector. `TRUE` will
 select the element with the same index, while `FALSE` will not:
 
-```{r, results="show", purl=FALSE}
-checkin_lengths <- c(64, 74, 36, 287)
-checkin_lengths[c(TRUE, FALSE, TRUE, TRUE)]
+```{r cond-subsetting, results="show", purl=FALSE}
+votes_per_precinct <- c(1000, 4300, 2340, 7190)
+votes_per_precinct[c(TRUE, FALSE, TRUE, TRUE)]
 ```
 
 Typically, these logical vectors are not typed by hand, but are the output of
 other functions or logical tests. For instance, if you wanted to select only the
-values greater than 2866:
-
-```{r, results="show", purl=FALSE}
-checkin_lengths > 60    # will return logicals with TRUE for the indices that meet the condition
+values greater than 2500:
+```{r greater-subsetting, results="show", purl=FALSE}
+votes_per_precinct > 2500    # will return logicals with TRUE for the indices that meet the condition
 ## so we can use this to select only the values greater than 2866
-checkin_lengths[checkin_lengths > 60]
+votes_per_precinct[votes_per_precinct > 2500]
 ```
 
 You can combine multiple tests using `&` (both conditions are true, AND) or `|`
 (at least one of the conditions is true, OR):
-
-```{r, results="show", purl=FALSE}
-checkin_lengths[checkin_lengths < 60 | checkin_lengths > 80]
-checkin_lengths[checkin_lengths >= 60 & checkin_lengths <= 80]
+```{r mult-subsetting, results="show", purl=FALSE}
+votes_per_precinct[votes_per_precinct < 2000 | votes_per_precinct > 4000]
+votes_per_precinct[votes_per_precinct >= 2000 & votes_per_precinct <= 4000]
 ```
 
 Here, `<` stands for "less than", `>` for "greater than", `>=` for "greater than
@@ -639,26 +603,23 @@ A common task is to search for certain strings in a vector. One could use the
 "or" operator `|` to test for equality to multiple values, but this can quickly
 become tedious.
 
-```{r, results="show", purl=FALSE}
-devices <- c("DEVICE_001", "DEVICE_002", "DEVICE_003", "DEVICE_004")
-devices[devices == "DEVICE_001" | devices == "DEVICE_002"] # returns both DEVICE_001 and DEVICE_002
+```{r equal-subsetting, results="show", purl=FALSE}
+job_types <- c("check-in", "check-out", "supervisor")
+job_types[job_types == "check-in" | job_types == "check-out"] # returns both check-in and check-out
 ```
 
 The function `%in%` allows you to test if any of the elements of a search vector
 (on the left-hand side) are found in the target vector (on the right-hand side):
-
-```{r, results="show", purl=FALSE}
-devices %in% c("DEVICE_001", "DEVICE_002")
+```{r %in%-subsetting, results="show", purl=FALSE}
+job_types %in% c("check-in", "check-out")
 ```
 
 Note that the output is the same length as the search vector on the left-hand
 side, because `%in%` checks whether each element of the search vector is found
 somewhere in the target vector. Thus, you can use `%in%` to select the elements
 in the search vector that appear in your target vector:
-
-```{r, results="show", purl=FALSE}
-devices %in% c("DEVICE_001", "DEVICE_002", "DEVICE_005")
-devices[devices %in% c("DEVICE_001", "DEVICE_002", "DEVICE_005")]
+```{r proper-%in%-subsetting, results="show", purl=FALSE}
+job_types[job_types %in% c("check-in", "check-out")]
 ```
 
 ## Missing Data
@@ -673,10 +634,15 @@ makes it harder to overlook the cases where you are dealing with missing data.
 You can add the argument `na.rm = TRUE` to calculate the result while ignoring
 the missing values.
 
-```{r, purl=FALSE}
+```{r vec-NA, purl=FALSE}
+#create vector
 checkin_lengths <- c(64, 74, NA, 287)
+
+#calc with NA
 mean(checkin_lengths)
 max(checkin_lengths)
+
+#calc without NA
 mean(checkin_lengths, na.rm = TRUE)
 max(checkin_lengths, na.rm = TRUE)
 ```
@@ -684,7 +650,7 @@ max(checkin_lengths, na.rm = TRUE)
 If your data include missing values, you may want to become familiar with the
 functions `is.na()`, `na.omit()`, and `complete.cases()`. See below for
 examples:
-```{r, purl=FALSE}
+```{r NA-functions, purl=FALSE}
 ## Extract those elements which are not missing values.
 ## The ! character is also called the NOT operator
 checkin_lengths[!is.na(checkin_lengths)]
@@ -720,15 +686,18 @@ checkin_lengths <- c(54, 21, 74, 65, NA, 72, 21, 16, 46, 58, 43, 61, 39, 19, NA,
 
 ## Solution
 
-```{r, answer=TRUE}
+```{r solution-4, answer=TRUE}
+#1.
 checkin_lengths <- c(54, 21, 74, 65, NA, 72, 21, 16, 46, 58, 43, 61, 39, 19, NA, 24)
 checkin_lengths_no_na <- checkin_lengths[!is.na(checkin_lengths)]
 # or
 checkin_lengths_no_na <- na.omit(checkin_lengths)
+
 # 2.
 median(checkin_lengths, na.rm = TRUE)
+
 # 3.
-checkin_lengths_above_55 <- rooms_no_na[checkin_lengths_no_na > 55]
+checkin_lengths_above_55 <- checkin_lengths_no_na[checkin_lengths_no_na > 55]
 length(checkin_lengths_above_55)
 ```
 
