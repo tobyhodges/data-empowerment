@@ -336,13 +336,13 @@ download.file(
 
 #### Messy Dataset:
 
-You can either copy the data from this [GitHub link](https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/messy.csv)
-and paste it into a file called `messy.csv` in the `data/` directory or
+You can either copy the data from this [GitHub link](https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/messy_data.csv)
+and paste it into a file called `messy_data.csv` in the `data/` directory or
 copy-paste the below code chunk into your terminal:
 ```{r anonymized_data, eval=FALSE}
 download.file(
-  "https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/messy.csv",
-  "messy.csv", mode = "wb"
+  "https://raw.githubusercontent.com/ml4sts/data-empowerment-lessons/main/episodes/data/messy_data.csv",
+  "messy_data.csv", mode = "wb"
   )
 ```
 
