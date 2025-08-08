@@ -58,7 +58,7 @@ In practice, sampling data before visualization is NOT required; however, due to
 the size of our original data set, using a smaller, sampled data set will allow 
 us to generate plots much faster!
 ```{r, eval=TRUE, message=FALSE, purl=FALSE}
-data <- read_csv(here("data", " checkin_sample_plotting.csv"))
+data <- read_csv(here("data", "checkin_sample_plotting.csv"))
 ```
 
 Before we continue, let's take a look at the structure and size of our data set 
