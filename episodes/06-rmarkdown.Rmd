@@ -166,7 +166,7 @@ far:
 ```         
 ## Introduction
 
-This report uses the **tidyverse** package along with the *Anonymized* dataset, 
+This report uses the **tidyverse** package along with the *Check-In* Dataset, 
 which has columns that include:
 ```
 
@@ -175,10 +175,11 @@ Then we can create a list for the variables using `-`, `+`, or `*` keys.
 ```         
 ## Introduction
 
-This report uses the **tidyverse** package along with the *Anonymized* dataset, 
+This report uses the **tidyverse** package along with the *Check-In* Dataset, 
 which has columns that include:
 
 - checkin\_id
+- checkin\_length
 - checkin\_time
 - location
 - precinct
@@ -189,10 +190,11 @@ You can also create an ordered list using numbers:
 
 ```         
 1. checkin\_id
-2. checkin\_time
-3. location
-4. precinct
-5. device
+2 checkin\_length
+3. checkin\_time
+4. location
+5. precinct
+6. device
 ```
 
 And nested items by tab-indenting:
@@ -200,6 +202,8 @@ And nested items by tab-indenting:
 ```         
 - checkin\_id
   + Unique key/ID for each ballot instance
+- checkin\_length
+  + Number of seconds it took for the person submitting the ballot to check-in
 - checkin\_time
   + Arrival time of the person submitting the ballot
 - location
@@ -258,10 +262,10 @@ alphanumeric characters and `-`.
 ```{r package-data, echo=FALSE, message=FALSE, purl=FALSE}
 library(tidyverse)
 library(here)
-data <- read_csv(here("data", "anonymized_data.csv"))
+data <- read_csv(here("data", "checkin_data.csv"))
 ```
 
-To load **tidyverse** and our `anonymized_data.csv` file, we will insert
+To load **tidyverse** and our `checkin_data.csv` file, we will insert
 a chunk and call it 'setup'. Since we don't want this code or the output
 to show in our knitted HTML document, we add an `include = FALSE` option
 after the code chunk name (`{r setup, include = FALSE}`).
@@ -273,7 +277,7 @@ library(tidyverse)
 library(here)
 
 #reads in data and assigns it to the 'data' variable using 'here'
-data <- read_csv(here("data", "anonymized_data.csv"))
+data <- read_csv(here("data", "checkin_data.csv"))
 ```
 ````
 
@@ -433,7 +437,7 @@ interested in presenting the total check-ins for a specific precinct.
 We can run the below code to create the total_2866 object, making future in-line 
 R code much easier to write:
 ```{r in-line-code, purl=FALSE}
-#create a summary data frame with the total check-ins per precinct
+#create a summary tibble with the total check-ins per precinct
 df <- data %>%
       group_by(precinct) %>%
       summarize(total_checkins = n())
@@ -468,7 +472,7 @@ Create a new code chunk for the plot, and copy the code from any of the
 plots we created in the previous episode to produce a plot in the chunk.
 
 If you are feeling adventurous, you can also create a new plot using the
-`data` data frame.
+`data` tibble.
 
 ::: solution
 ## Solution to Exercise
