@@ -3,7 +3,7 @@ episodes/*html
 site/*
 !site/README.md
 
-.DS_Store
+
 # History files
 .Rhistory
 .Rapp.history
@@ -52,6 +52,7 @@ po/*~
 
 # renv sandbox needed for renv version 0.16.0
 renv/sandbox # OPTIONAL
+renv*
 
 # Mac system files
 .DS_Store
