@@ -14,7 +14,7 @@ carpentry: 'edi-plej'
 
 # Custom carpentry description
 # This will be used as the alt text for the logo
-# carpentry_description: "Custom Carpentry"
+carpentry_description: "Engineering For Democracy Institute and Partnership for Large Election Jurisdictions"
 
 # Overall title for pages.
 title: 'Data Empowerment for Election Workers'
@@ -33,7 +33,7 @@ life_cycle: 'pre-alpha'
 license: 'CC-BY 4.0'
 
 # Link to the source repository for this lesson
-source: 'https://github.com/ml4sts/data-empowerment-lessons'
+source: 'https://engineeringfordemocracy.github.io/data-empowerment/'
 
 # Default branch of your lesson
 branch: 'main'
