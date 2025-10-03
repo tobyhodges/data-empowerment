@@ -117,7 +117,7 @@ seen below:
 select(data, checkin_time:precinct)
 ```
 
-Additional examples of the **`select()`** function can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20island,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
+You can see a visualized example of the **`select()`** function on [tidy data tutor](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20island,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
 
 ## Filtering Rows
 
@@ -171,7 +171,7 @@ filter(data, precinct == "PRECINCT_001" | precinct == "PRECINCT_002")
 ```
 
 
-Additional examples of the **`filter()`** function can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20filter%28bill_length_mm%20%3E%2045%29&d=2025-04-18&lang=r&v=v1)
+you can see a visualized examples of the **`filter()`** function on [tidy data tutor](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20filter%28bill_length_mm%20%3E%2045%29&d=2025-04-18&lang=r&v=v1)
 
 ## Using Pipes
 
@@ -359,7 +359,7 @@ data %>%
 ```
 
 Additional examples of the **`group_by()`** and **`summarize()`** functions can 
-be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20summarise%28Avg_Bill_Length%20%3D%20mean%28bill_length_mm%29%29&d=2025-04-18&lang=r&v=v1)
+be found at [tidy data tutor](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20summarise%28Avg_Bill_Length%20%3D%20mean%28bill_length_mm%29%29&d=2025-04-18&lang=r&v=v1)
 
 ### `arrange()`
 
@@ -382,7 +382,7 @@ data %>%
   arrange(desc(total_checkins))
 ```
 
-An additional example of the **`arrange()`** function can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20arrange%28bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
+An additional example of the **`arrange()`** function can be found [at tidy data tutor](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28species,%20bill_length_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20arrange%28bill_length_mm%29&d=2025-04-18&lang=r&v=v1)
 
 ### `count()`
 
@@ -483,7 +483,7 @@ data %>%
 
 This code filters out duplicate entries, showing just one record for each unique precinct and the new column we just added.
 
-Additional examples of the **`mutate()`** function can be found [here](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%20%25%3E%25%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20mutate%28bill_volume%20%3D%20bill_length_mm%20*%20bill_depth_mm%29&d=2025-04-18&lang=r&v=v1)
+Additional examples of the **`mutate()`** function can be found at [tidy data tutor](https://tidydatatutor.com/vis.html#code=library%28dplyr%29%0Alibrary%28palmerpenguins%29%0A%0Aset.seed%282021-12-03%29%0A%0Asample_penguins%20%3C-%20penguins%20%25%3E%25%0A%20%20group_by%28species%29%20%25%3E%25%20%0A%20%20sample_n%283%29%20%25%3E%25%20%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%20%25%3E%25%20%0A%20%20ungroup%28%29%20%25%3E%25%0A%20%20select%28bill_length_mm,%20bill_depth_mm%29%0A%0Asample_penguins%20%25%3E%25%20%0A%20%20mutate%28bill_volume%20%3D%20bill_length_mm%20*%20bill_depth_mm%29&d=2025-04-18&lang=r&v=v1)
 
 :::::::::::::::::::::::::::::::::::::::  challenge
 

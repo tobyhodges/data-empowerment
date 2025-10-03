@@ -1206,8 +1206,7 @@ theme, you can use the `theme()` function to manually customize your maps and
 plots!
 
 The `theme()` function allows you to customize all portions of a ggplot, including 
-the text, title, subtitle, and grids. You can find a full list either by following 
-[this link](https://ggplot2.tidyverse.org/reference/theme.html) or using the panel 
+the text, title, subtitle, and grids. You can find the [full list in the documentation](https://ggplot2.tidyverse.org/reference/theme.html) or by using the panel 
 on the right and navigating to the `theme` help page (Help > Packages > ggplot2 > theme).
 
 Below, we will be applying a few of these customizations to a plot from earlier 

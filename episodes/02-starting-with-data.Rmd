@@ -219,7 +219,7 @@ Second, `read.csv()` stores data as a `data.frame`, where `read_csv()` stores da
 as a different kind of data frame called a `tibble`. A tibble is an extension of 
 `R` data frames used by the **`tidyverse`**. We prefer tibbles because they have 
 nice printing properties among other desirable qualities. You can read more about 
-tibbles [here](https://tibble.tidyverse.org/).
+[tibbles in its docs](https://tibble.tidyverse.org/).
 
 
 Additionally, the `read_csv()` statement in the code above creates a tibble but 
