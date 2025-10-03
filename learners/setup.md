@@ -22,6 +22,7 @@ Follow the instructions below to install/update R and RStudio for your operating
 system, and then follow the instructions at the end to install **`tidyverse`** and 
 **`here`**.
 
+::: tab
 
 ### Windows
 
@@ -116,7 +117,9 @@ system, and then follow the instructions at the end to install **`tidyverse`** a
   whether a more recent version is available. If so, download and install R using 
   the instructions above.
 
-### For Everyone. after installing R and RStudio:
+::: 
+
+## After installing R and RStudio:
 - If you are running Linux, before installing the `tidyverse` package, **Ubuntu** 
   (and related) users may need to install the following dependencies: 
   `libcurl4-openssl-dev libssl-dev libxml2-dev` (e.g. `sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev`).
@@ -131,6 +134,9 @@ system, and then follow the instructions at the end to install **`tidyverse`** a
 
 ## Datasets
 Throughout this workshop, we use four primary data sets:
+
+We recommend that you download a [single zip file](https://github.com/EngineeringForDemocracy/data-empowerment/raw/refs/heads/main/episodes/data/data_file.zip) 
+with all of the files and then unzip it. Move the unzipped folder to somewhere on your system that you can find (e.g. Desktop or Documents). 
 
 The Check-In Dataset is based on a 2018 state election. The data set tracks 
 check-in times and lengths at ballot scanners across various locations, as well 
